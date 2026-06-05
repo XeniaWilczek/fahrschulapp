@@ -19,7 +19,16 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@/*": ["./*"]
+    }
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "src/components/ErrorPage.tsx",
+    "src/components/Canvas.tsx",
+    "src/components/Rules.tsx",
+    "src/components/LogIn.tsx"
+  ]
 }
