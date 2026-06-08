@@ -1,3 +1,3 @@
 export default function Edit() {
-  return <div></div>;
+  return <div>Edit</div>;
 }
