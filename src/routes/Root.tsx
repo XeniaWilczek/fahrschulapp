@@ -17,7 +17,7 @@ export default function Root() {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background text-foreground">
-        <p className="text-sm font-medium">Lade Anwendung...</p>
+        <p className="text-sm font-medium">Laden...</p>
       </div>
     );
   }

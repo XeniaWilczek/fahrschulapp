@@ -3,7 +3,7 @@ export default function Rules() {
     <div className="w-full h-full bg-slate-50 text-slate-800 flex flex-col justify-center items-center gap-2 px-6">
       <h1 className="text-2xl font-bold">Spielregeln</h1>
       <div className="w-[60vw] flex flex-col justify-center items-center gap-2">
-        <p>1. Eine Spielrunde besteht aus genau 5 Verkehsszenarien.</p>
+        <p>1. Eine Spielrunde besteht aus 5 Verkehsszenarien.</p>
         <p>
           2. Das Auto fährt von alleine und stoppt an einer kniffligen
           Verkehrssituation.

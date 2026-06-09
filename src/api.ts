@@ -6,6 +6,21 @@ export const supabase = createClient<Database>(
   import.meta.env.VITE_SUPABASE_KEY,
 );
 
+export async function fetchScenarioById(id: number) {
+  const { data, error } = await supabase
+    .from("scenarios")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Fehler beim Laden des Szenarios:", error);
+    return null;
+  }
+
+  return data;
+}
+
 // async function insertData() {
 //   const { error } = await supabase.from("Test").insert({
 //     column_name: "Hallo",
