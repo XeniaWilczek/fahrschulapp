@@ -1,12 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
-import type { Database } from "../../../Modul 14/Authentifizierung mit Supabase/src/types/database.types";
+import type { Database } from "./types/database.types";
 
 export const supabase = createClient<Database>(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_KEY,
 );
 
-export async function fetchScenarioById(id: number) {
+export async function fetchScenarioById(id: string) {
   const { data, error } = await supabase
     .from("scenarios")
     .select("*")

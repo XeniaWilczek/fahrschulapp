@@ -17,39 +17,39 @@ export type Database = {
       scenarios: {
         Row: {
           answers: string[]
-          correctAnswer: string | null
-          endpointX: number | null
-          endpointY: number | null
+          correctAnswer: string
+          endpointX: number
+          endpointY: number
           id: string
-          imageUrl: string | null
-          question: string | null
-          startpointX: number | null
-          startpointY: number | null
-          title: string | null
+          imageUrl: string
+          question: string
+          startpointX: number
+          startpointY: number
+          title: string
         }
         Insert: {
           answers: string[]
-          correctAnswer?: string | null
-          endpointX?: number | null
-          endpointY?: number | null
+          correctAnswer: string
+          endpointX: number
+          endpointY: number
           id?: string
-          imageUrl?: string | null
-          question?: string | null
-          startpointX?: number | null
-          startpointY?: number | null
-          title?: string | null
+          imageUrl: string
+          question: string
+          startpointX: number
+          startpointY: number
+          title: string
         }
         Update: {
           answers?: string[]
-          correctAnswer?: string | null
-          endpointX?: number | null
-          endpointY?: number | null
+          correctAnswer?: string
+          endpointX?: number
+          endpointY?: number
           id?: string
-          imageUrl?: string | null
-          question?: string | null
-          startpointX?: number | null
-          startpointY?: number | null
-          title?: string | null
+          imageUrl?: string
+          question?: string
+          startpointX?: number
+          startpointY?: number
+          title?: string
         }
         Relationships: []
       }

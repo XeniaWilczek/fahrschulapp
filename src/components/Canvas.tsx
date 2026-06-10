@@ -1,45 +1,37 @@
-import type { CarModelProps } from "../routes/Play";
 import { fetchScenarioById } from "../api";
-
 import { useRef, useEffect, useState } from "react";
-//state von car eindügen, damit es benutzt werden kann?
-interface ScenarioProps {
-  id: string;
-  title: string;
-  imageUrl: string;
-  startpointX: number;
-  startpointY: number;
-  endpointX: number;
-  endpointY: number;
-  question: string;
-  answers: string[];
-  correctAnswer: string;
-}
+import type { Scenario } from "@/types/ScenarioTypes";
+import type { CarModelProps } from "@/routes/Play";
 
 export default function CanvasCarAnimation({
   selectedCar,
+  onScenarioLoaded,
 }: {
-  selectedCar: CarModelProps | null;
+  selectedCar: CarModelProps;
+  onScenarioLoaded: (scenario: Scenario) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [scenario, setScenario] = useState<Scenario | null>(null);
 
-  const [scenario, setScenario] = useState<ScenarioProps | null>(null);
-
-  // Separater Hook für das Fetchen der Daten von Supabase
+  // Verhindert Endlosschleifen, falls Play.tsx die Funktion neu rendert
+  const onScenarioLoadedRef = useRef(onScenarioLoaded);
   useEffect(() => {
-    // Beispiel-Id -->später dynamisch
-    fetchScenarioById(1).then((data: ScenarioProps | null) => {
+    onScenarioLoadedRef.current = onScenarioLoaded;
+  }, [onScenarioLoaded]);
+
+  // Szenario laden
+  useEffect(() => {
+    fetchScenarioById("06d34b44-7b9c-4131-b043-bf3494f55175").then((data) => {
       if (data) {
         setScenario(data);
+        onScenarioLoadedRef.current(data); // Sofort an Play.tsx melden
       }
     });
   }, []);
 
-  // Separater Hook für Canvas-Animation mit bestimmtem Szenario und bestimmtem Auto
+  // Canvas-Animation
   useEffect(() => {
-    if (!scenario || !selectedCar) {
-      return;
-    }
+    if (!scenario) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -50,82 +42,85 @@ export default function CanvasCarAnimation({
     const carImage = new Image();
     const roadImage = new Image();
 
-    carImage.src = car;
-    roadImage.src = road;
-
-    // Startpositionen
-    //let carY = canvas.height + 60;
-
-    // Pixelwert 255, damit das Auto mittig auf der Spur fährt
-    //let carX = 255;
+    carImage.src = selectedCar.src;
+    roadImage.src = scenario.imageUrl;
 
     let carY = scenario.startpointY;
     let carX = scenario.startpointX;
-
-    let carRotation = -Math.PI / 2;
-
+    let carRotation = -Math.PI / 2; // Auto zeigt nach Norden
     let animationFrameId: number;
+    let isCleanedUp = false;
 
     function draw() {
-      if (!canvas || !ctx) return;
+      if (!canvas || !ctx || !scenario || isCleanedUp) return;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // 1. Straße zeichnen
+      // Straße zeichnen
       ctx.drawImage(roadImage, 0, 0, canvas.width, canvas.height);
 
-      // 2. Proportionale Maße berechnen
-      const targetWidth = 50;
-      const aspectRatio = carImage.naturalWidth / carImage.naturalHeight;
-      const targetHeight = targetWidth * aspectRatio;
+      // Auto-Proportionen korrekt berechnen
+      const targetHeight = 70;
+      const aspectRatio = carImage.naturalWidth / carImage.naturalHeight || 1;
+      const targetWidth = targetHeight * aspectRatio;
 
-      // 3. Canvas für die Drehung vorbereiten
+      // Rotation vorbereiten
       ctx.save();
       ctx.translate(carX, carY);
-
       ctx.rotate(carRotation);
-      console.log(carX, carY);
-      // 4. Auto zentriert zeichnen
+
+      // Auto zentriert zeichnen
       ctx.drawImage(
         carImage,
-        -targetHeight / 2,
         -targetWidth / 2,
-        targetHeight,
+        -targetHeight / 2,
         targetWidth,
+        targetHeight,
       );
 
       ctx.restore();
 
-      // 5. Bewegung nach Norden
-      carY -= 2;
-
-      //Reset
+      // Bewegung nach Norden
       if (carY > scenario.endpointY) {
+        carY -= 2;
         animationFrameId = requestAnimationFrame(draw);
+      } else {
+        // Animation beendet → Play.tsx informieren
+        cancelAnimationFrame(animationFrameId);
       }
     }
 
+    // Bilder laden
     const loadRoad = new Promise((resolve) => {
       roadImage.onload = resolve;
-      roadImage.onerror = () => console.error("Fehler beim Laden von road.png");
+      roadImage.onerror = () =>
+        console.error("Fehler beim Laden des Straßenbildes");
     });
 
     const loadCar = new Promise((resolve) => {
       carImage.onload = resolve;
-      carImage.onerror = () => console.error("Fehler beim Laden von car.svg");
+      carImage.onerror = () =>
+        console.error("Fehler beim Laden des Autobildes");
     });
 
     Promise.all([loadRoad, loadCar]).then(() => {
-      draw();
+      if (!isCleanedUp) {
+        draw();
+      }
     });
 
     return () => {
+      isCleanedUp = true;
       cancelAnimationFrame(animationFrameId);
     };
   }, [scenario, selectedCar]);
 
   if (!scenario) {
-    return <div className="text-center p-4">Szenario wird geladen...</div>;
+    return (
+      <div className="text-center p-4 text-sm text-slate-500">
+        Szenario wird geladen...
+      </div>
+    );
   }
 
   return (
@@ -133,7 +128,7 @@ export default function CanvasCarAnimation({
       ref={canvasRef}
       width={300}
       height={500}
-      className="border border-gray-400 rounded"
+      className="border border-gray-400 rounded w-full h-full object-cover"
     />
   );
 }
