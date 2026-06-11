@@ -1,42 +1,76 @@
 import { Button } from "./ui/button";
 import type { Scenario } from "@/types/ScenarioTypes";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
-export default function Question({ scenario }: { scenario: Scenario }) {
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+export default function Question({
+  scenario,
+  onAnswerEvaluated,
+}: {
+  scenario: Scenario;
+  onAnswerEvaluated: (isFirstTryCorrect: boolean) => void;
+}) {
+  const [clickedAnswers, setClickedAnswers] = useState<string[]>([]);
+  const [clickCount, setClickCount] = useState(0);
+  const [shuffledAnswers, setShuffledAnswers] = useState<string[]>([]);
 
-  // Normalisierung, um Fehler durch Leerzeichen / Case zu vermeiden
   const normalize = (s: string) => s.trim().toLowerCase();
-
   const correctAnswer = normalize(scenario.correctAnswer);
 
+  // Reset und Mischen bei neuem Szenario
+  useEffect(() => {
+    setClickedAnswers([]);
+    setClickCount(0);
+
+    const answerCopy = [...scenario.answers];
+    const allPickedAnswers: string[] = [];
+    while (answerCopy.length > 0) {
+      const randomPointer = Math.floor(Math.random() * answerCopy.length);
+      const [pickedAnswer] = answerCopy.splice(randomPointer, 1);
+      allPickedAnswers.push(pickedAnswer);
+    }
+    setShuffledAnswers(allPickedAnswers);
+  }, [scenario.id]);
+
   function handleSelectAnswer(answer: string) {
-    setSelectedAnswer(answer);
+    // Wenn dieser spezifische Button in diesem Szenario bereits geklickt wurde, ignorieren
+    if (clickedAnswers.includes(answer)) return;
+
+    const newClickCount = clickCount + 1;
+    setClickCount(newClickCount);
+
+    // Fügt die Antwort zur Liste der bereits geklickten Buttons hinzu
+    setClickedAnswers((prev) => [...prev, answer]);
+
+    const isCorrect = normalize(answer) === correctAnswer;
+
+    if (newClickCount === 1) {
+      onAnswerEvaluated(isCorrect);
+    }
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-slate-50 font-bold">{scenario.question}</p>
+      <p className="text-sm text-foreground font-bold text-left">
+        {scenario.question}
+      </p>
 
       <div className="flex flex-col gap-3">
-        {scenario.answers.map((answer, index) => {
+        {shuffledAnswers.map((answer, index) => {
           const normalizedAnswer = normalize(answer);
-
-          const isSelected = answer === selectedAnswer;
+          const hasBeenClicked = clickedAnswers.includes(answer);
           const isCorrect = normalizedAnswer === correctAnswer;
-
-          const selectionStyles = isSelected
+          const selectionStyles = hasBeenClicked
             ? isCorrect
-              ? "bg-green-600 text-slate-50 border-none hover:bg-green-500"
-              : "bg-red-600 text-slate-50 border-none hover:bg-red-500"
-            : "";
+              ? "bg-green-600 text-white border-none hover:bg-green-500"
+              : "bg-destructive text-destructive-foreground border-none hover:bg-destructive/90"
+            : "bg-primary text-primary-foreground hover:bg-primary-hover";
 
           return (
             <Button
               key={index}
               className={cn(
-                "justify-start text-left w-full h-auto py-3 px-4 whitespace-normal break-words transition-colors",
+                "justify-start text-left w-full h-auto py-3 px-4 whitespace-normal wrap-break-word transition-colors font-medium border",
                 selectionStyles,
               )}
               onClick={() => handleSelectAnswer(answer)}

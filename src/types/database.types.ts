@@ -56,6 +56,7 @@ export type Database = {
       scores: {
         Row: {
           created_at: string
+          gameId: string
           id: number
           scenarioId: string | null
           score: number | null
@@ -63,6 +64,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          gameId: string
           id?: number
           scenarioId?: string | null
           score?: number | null
@@ -70,6 +72,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          gameId?: string
           id?: number
           scenarioId?: string | null
           score?: number | null
@@ -94,15 +97,12 @@ export type Database = {
       }
       users: {
         Row: {
-          carModel: string | null
           id: string
         }
         Insert: {
-          carModel?: string | null
           id?: string
         }
         Update: {
-          carModel?: string | null
           id?: string
         }
         Relationships: []

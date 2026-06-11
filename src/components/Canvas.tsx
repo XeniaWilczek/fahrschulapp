@@ -3,33 +3,38 @@ import { useRef, useEffect, useState } from "react";
 import type { Scenario } from "@/types/ScenarioTypes";
 import type { CarModelProps } from "@/routes/Play";
 
-export default function CanvasCarAnimation({
+export default function Canvas({
   selectedCar,
+  currentScenarioId,
   onScenarioLoaded,
 }: {
   selectedCar: CarModelProps;
+  currentScenarioId: string;
   onScenarioLoaded: (scenario: Scenario) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scenario, setScenario] = useState<Scenario | null>(null);
 
-  // Verhindert Endlosschleifen, falls Play.tsx die Funktion neu rendert
+  // Verhindert erneutes Rendering des Scenarios, falls Play.tsx die Funktion neu rendert
   const onScenarioLoadedRef = useRef(onScenarioLoaded);
   useEffect(() => {
     onScenarioLoadedRef.current = onScenarioLoaded;
   }, [onScenarioLoaded]);
 
-  // Szenario laden
+  // useEffect zum Laden eines Szenarios
   useEffect(() => {
-    fetchScenarioById("06d34b44-7b9c-4131-b043-bf3494f55175").then((data) => {
+    if (!currentScenarioId) return;
+
+    fetchScenarioById(currentScenarioId).then((data) => {
       if (data) {
         setScenario(data);
-        onScenarioLoadedRef.current(data); // Sofort an Play.tsx melden
+        // wird an Play.tsx gemeldet, damit die Fragen rechts erscheinen
+        onScenarioLoadedRef.current(data);
       }
     });
-  }, []);
+  }, [currentScenarioId]);
 
-  // Canvas-Animation
+  // useEffect für Animation
   useEffect(() => {
     if (!scenario) return;
 
@@ -59,7 +64,7 @@ export default function CanvasCarAnimation({
       // Straße zeichnen
       ctx.drawImage(roadImage, 0, 0, canvas.width, canvas.height);
 
-      // Auto-Proportionen korrekt berechnen
+      // Auto-Proportionen berechnen
       const targetHeight = 70;
       const aspectRatio = carImage.naturalWidth / carImage.naturalHeight || 1;
       const targetWidth = targetHeight * aspectRatio;
@@ -85,7 +90,6 @@ export default function CanvasCarAnimation({
         carY -= 2;
         animationFrameId = requestAnimationFrame(draw);
       } else {
-        // Animation beendet → Play.tsx informieren
         cancelAnimationFrame(animationFrameId);
       }
     }
