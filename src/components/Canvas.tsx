@@ -28,7 +28,6 @@ export default function Canvas({
     fetchScenarioById(currentScenarioId).then((data) => {
       if (data) {
         setScenario(data);
-        // wird an Play.tsx gemeldet, damit die Fragen rechts erscheinen
         onScenarioLoadedRef.current(data);
       }
     });
@@ -47,12 +46,10 @@ export default function Canvas({
     const carImage = new Image();
     const roadImage = new Image();
 
-    carImage.src = selectedCar.src;
-    roadImage.src = scenario.imageUrl;
-
     let carY = scenario.startpointY;
     let carX = scenario.startpointX;
-    let carRotation = -Math.PI / 2; // Auto zeigt nach Norden
+    // Auto zeigt nach Norden
+    let carRotation = -Math.PI / 2;
     let animationFrameId: number;
     let isCleanedUp = false;
 
@@ -66,7 +63,9 @@ export default function Canvas({
 
       // Auto-Proportionen berechnen
       const targetHeight = 70;
-      const aspectRatio = carImage.naturalWidth / carImage.naturalHeight || 1;
+      const imgWidth = carImage.naturalWidth || carImage.width || 1;
+      const imgHeight = carImage.naturalHeight || carImage.height || 1;
+      const aspectRatio = imgWidth / imgHeight;
       const targetWidth = targetHeight * aspectRatio;
 
       // Rotation vorbereiten
@@ -89,23 +88,23 @@ export default function Canvas({
       if (carY > scenario.endpointY) {
         carY -= 2;
         animationFrameId = requestAnimationFrame(draw);
-      } else {
-        cancelAnimationFrame(animationFrameId);
       }
     }
 
-    // Bilder laden
-    const loadRoad = new Promise((resolve) => {
-      roadImage.onload = resolve;
+    const loadRoad = new Promise<void>((resolve) => {
+      roadImage.onload = () => resolve();
       roadImage.onerror = () =>
         console.error("Fehler beim Laden des Straßenbildes");
     });
 
-    const loadCar = new Promise((resolve) => {
-      carImage.onload = resolve;
+    const loadCar = new Promise<void>((resolve) => {
+      carImage.onload = () => resolve();
       carImage.onerror = () =>
         console.error("Fehler beim Laden des Autobildes");
     });
+
+    carImage.src = selectedCar.src;
+    roadImage.src = scenario.imageUrl;
 
     Promise.all([loadRoad, loadCar]).then(() => {
       if (!isCleanedUp) {
@@ -132,7 +131,7 @@ export default function Canvas({
       ref={canvasRef}
       width={300}
       height={500}
-      className="border border-gray-400 rounded w-full h-full object-cover"
+      className="border border-gray-400 rounded block"
     />
   );
 }

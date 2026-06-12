@@ -28,14 +28,16 @@ export interface CarModelProps {
   alt: string;
 }
 
-export default function Play() {
-  const carModels: CarModelProps[] = [
-    { id: 1, title: "Ford Focus", src: fordFocusImg, alt: "Rotes Auto" },
-    { id: 2, title: "VW Tiguan", src: vwTiguanImg, alt: "Blaues Auto" },
-    { id: 3, title: "Porsche 911", src: porsche911Img, alt: "Gelbes Auto" },
-    { id: 4, title: "Mini Cooper C", src: miniCooperCImg, alt: "Grünes Auto" },
-  ];
+// EMPFEHLUNG: Verschieben Sie carModels nach oben (außerhalb von Play()),
+// um unnötige Re-Renders im Arbeitsspeicher bei jedem State-Wechsel zu verhindern.
+const carModels: CarModelProps[] = [
+  { id: 1, title: "Ford Focus", src: fordFocusImg, alt: "Rotes Auto" },
+  { id: 2, title: "VW Tiguan", src: vwTiguanImg, alt: "Blaues Auto" },
+  { id: 3, title: "Porsche 911", src: porsche911Img, alt: "Gelbes Auto" },
+  { id: 4, title: "Mini Cooper C", src: miniCooperCImg, alt: "Grünes Auto" },
+];
 
+export default function Play() {
   const [isOpen, setIsOpen] = useState(true);
   const [carModel, setCarModel] = useState<CarModelProps | null>(null);
   const [activeScenario, setActiveScenario] = useState<Scenario | null>(null);
@@ -102,7 +104,7 @@ export default function Play() {
       await saveScenarioScore({
         gameId: gameId,
         scenarioId: activeScenario.id.toString(),
-        score: isCurrentCorrect ? 1 : 0, // Trägt 1 bei richtig ein, sonst 0
+        score: isCurrentCorrect ? 1 : 0,
         userId: null,
       });
 
@@ -115,15 +117,7 @@ export default function Play() {
         setCurrentStep((prev) => prev + 1);
       } else {
         alert(`Das Spiel ist beendet! Dein Gesamtpunktestand: ${score} / 5`);
-
-        // Reset für das nächste Spiel
-        setCurrentStep(0);
-        setScore(0);
-        setIsCurrentCorrect(null);
-        setActiveScenario(null);
-        setGameScenarioIds([]);
-        setIsOpen(true);
-        loadScenarioIds();
+        await finishGame();
       }
     } catch (error) {
       console.error("Fehler beim Speichern des Scores:", error);
@@ -132,6 +126,20 @@ export default function Play() {
     }
   }
 
+  async function finishGame() {
+    // Reset
+    setCurrentStep(0);
+    setScore(0);
+    setIsCurrentCorrect(null);
+    setActiveScenario(null);
+    setGameScenarioIds([]);
+    setGameId(null);
+    setCarModel(null);
+    // Auto-Dialog öffnen
+    setIsOpen(true);
+    // Neue Szenarien laden
+    await loadScenarioIds();
+  }
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-6">
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -183,10 +191,10 @@ export default function Play() {
           <div className="flex justify-between items-center mb-6">
             <p className="text-sm text-slate-800 font-bold">
               Szenario:{" "}
-              <span className="tex-sm text-amber-400 font-bold">
+              <span className="text-sm text-amber-400 font-bold">
                 {currentStep + 1}
               </span>
-              <span className="tex-sm text-slate-800 font-bold"> / 5</span>
+              <span className="text-sm text-slate-800 font-bold"> / 5</span>
             </p>
             <p className="text-lg font-bold text-slate-800">
               Punkte:{" "}
@@ -206,6 +214,7 @@ export default function Play() {
               Nächstes Szenario wird geladen...
             </div>
           )}
+
           <div className="w-full flex justify-between mt-4 gap-3">
             <Button
               className="text-lg text-slate-800 w-full sm:w-auto px-6"
@@ -220,22 +229,21 @@ export default function Play() {
               className="text-lg text-slate-800 w-full sm:w-auto px-6"
               variant="outline"
               onClick={handleNextScenario}
+              disabled={isSubmitting}
             >
               <MoveRight className="size-6 transition-colors mr-2" />
-              <span>Weiter</span>
+              <span>{isSubmitting ? "Speichert..." : "Weiter"}</span>
             </Button>
           </div>
-          {currentStep === gameScenarioIds.length - 1 && (
-            <div className="w-full mt-3">
-              <Button
-                className="text-lg text-slate-800 w-full hover:bg-destructive/80"
-                variant="outline"
-                onClick={handleNextScenario}
-              >
-                <span>Beenden</span>
-              </Button>
-            </div>
-          )}
+          <div className="w-full mt-3">
+            <Button
+              className="text-lg text-slate-800 w-full bg-destructive/80 hover:bg-destructive/60"
+              variant="outline"
+              onClick={finishGame}
+            >
+              <span>Spiel beenden</span>
+            </Button>
+          </div>
         </div>
       </div>
     </div>
