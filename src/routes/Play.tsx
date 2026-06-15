@@ -143,26 +143,32 @@ export default function Play() {
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-6">
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Mit welchem Auto willst du fahren?</DialogTitle>
-            <DialogDescription>Wähle ein Modell.</DialogDescription>
+        <DialogContent className="sm:max-w-md font-sans">
+          <DialogHeader className="text-left">
+            <DialogTitle className="font-heading font-bold text-xl text-foreground">
+              Mit welchem Auto willst du fahren?
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground font-sans">
+              Wähle ein Modell.
+            </DialogDescription>
           </DialogHeader>
+
           <div className="grid grid-cols-2 gap-3 py-2">
             {carModels.map((item) => (
               <button
                 key={item.id}
                 onClick={() => handleSelectCar(item.id)}
-                className="group flex flex-col items-center gap-1.5 rounded-lg border p-2 text-center transition-all hover:border-primary hover:bg-accent"
+                className="group flex flex-col items-center gap-1.5 rounded-lg border border-input p-2 text-center transition-all bg-background text-foreground hover:border-primary outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
               >
-                <span className="font-bold text-sm group-hover:text-primary truncate w-full">
+                <span className="font-bold text-sm text-foreground/90 group-hover:text-primary transition-colors truncate w-full">
                   {item.title}
                 </span>
-                <div className="overflow-hidden rounded-md bg-muted aspect-video w-full">
+
+                <div className="overflow-hidden rounded-md bg-muted aspect-video w-full border border-border/40">
                   <img
                     src={item.src}
                     alt={item.alt}
-                    className="h-full w-full object-contain transition-transform group-hover:scale-105"
+                    className="h-full w-full object-contain transition-transform duration-200 group-hover:scale-105"
                   />
                 </div>
               </button>

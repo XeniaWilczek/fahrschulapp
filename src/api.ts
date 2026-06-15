@@ -1,10 +1,23 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types/database.types";
+import type { Scenario } from "./types/ScenarioTypes";
 
 export const supabase = createClient<Database>(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_KEY,
 );
+
+//Laden aller Szenario-Objekte in ein Array für Listen-Ansicht
+export async function fetchAllScenarios(): Promise<Scenario[]> {
+  const { data, error } = await supabase.from("scenarios").select("*");
+
+  if (error) {
+    console.error("Fehler beim Laden der Szenarien aus der DB:", error);
+    return [];
+  }
+
+  return data as Scenario[];
+}
 
 //Laden alles SzenarioIds
 export async function fetchAllScenarioIds(): Promise<string[]> {
@@ -20,7 +33,6 @@ export async function fetchAllScenarioIds(): Promise<string[]> {
 }
 
 // 5 zufällige Ids aus einem übergebenen Gesamt-Array
-
 export function pickFiveRandomIds(allIds: string[]): string[] {
   // Kopie des Gesamt-Arrays erstellen, um das Original nicht zu verändern
   const pool = [...allIds];
@@ -40,7 +52,7 @@ export function pickFiveRandomIds(allIds: string[]): string[] {
 }
 
 //Laden eines einzelnen, kompletten Szenarios
-export async function fetchScenarioById(id: string) {
+export async function fetchScenarioById(id: string): Promise<Scenario | null> {
   const { data, error } = await supabase
     .from("scenarios")
     .select("*")
@@ -51,7 +63,7 @@ export async function fetchScenarioById(id: string) {
     console.error("Fehler beim Nachladen des Szenarios:", error);
     return null;
   }
-  return data;
+  return data as Scenario;
 }
 
 export async function saveScenarioScore({
