@@ -71,7 +71,7 @@ export default function Play() {
     loadScenarioIds();
   }, []);
 
-  // Funktionalität für Car-Dialog
+  // Funktionalität für CarDialog
   function handleSelectCar(id: number): void {
     const selectedCar = carModels.find((car) => car.id === id);
     if (selectedCar) {
@@ -92,7 +92,7 @@ export default function Play() {
     }
   }
 
-  // "Weiter"-Logik mit Insert in "scores"-Tabelle in Supabase
+  // "Weiter" klicken mit Insert in "scores"-Tabelle in Supabase
   async function handleNextScenario() {
     if (!gameId || !activeScenario || isCurrentCorrect === null) return;
 
@@ -111,7 +111,7 @@ export default function Play() {
         // Altes Szenario kurz ausblenden (verhindert Textflackern)
         setActiveScenario(null);
         setIsCurrentCorrect(null);
-        // Index um +1 erhöhen --> Nächstes Szenario lädt im Canvas
+        // Index um +1 erhöhen --> Nächstes Szenario lädt in Canvas
         setCurrentStep((prev) => prev + 1);
       } else {
         alert(`Das Spiel ist beendet! Dein Gesamtpunktestand: ${score} / 5`);
@@ -138,7 +138,7 @@ export default function Play() {
     // Neue Szenarien laden
     await loadScenarioIds();
   }
-  //CarDiaog raus?
+  //CarDiaog auslagern?
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-6">
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

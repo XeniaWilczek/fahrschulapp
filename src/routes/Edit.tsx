@@ -31,7 +31,7 @@ export default function Edit() {
     setScenarios(data);
   }
 
-  // Lädt die Daten automatisch beim initialen Laden der Seite
+  // Lädt Daten automatisch beim initialen Laden der Seite
   useEffect(() => {
     loadScenarios();
   }, []);
@@ -75,13 +75,13 @@ export default function Edit() {
     }
   }
 
-  // Öffnet den Dialog im Erstellen-Modus
+  // Öffnet Dialog im Erstellen-Modus
   function handleCreateClick() {
     setEditingScenario(null);
     setIsDialogOpen(true);
   }
 
-  // Öffnet den Dialog im Bearbeiten-Modus mit den Daten
+  // Öffnet Dialog im Bearbeiten-Modus mit den Daten
   function handleEditClick(scenario: Scenario) {
     setEditingScenario(scenario);
     setIsDialogOpen(true);

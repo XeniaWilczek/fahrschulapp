@@ -81,13 +81,13 @@ export default function ScenarioDialog({
   function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    // Verarbeitet den getippten Komma-Text zu einem echten Array
+    // Verarbeitet den getippten Text mit Kommas zu echten Array
     const answersArray = answersInput
       .split(",")
       .map((answer) => answer.trim())
       .filter((answer) => answer !== "");
 
-    // Erstellt das finale Objekt exakt im Supabase-Format
+    // Erstellt Objekt für Supabase-Array
     const finalData: Scenario = {
       ...formData,
       answers: answersArray,

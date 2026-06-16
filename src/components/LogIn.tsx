@@ -1,3 +1,5 @@
+import { supabase } from "@/api";
+
 //Authentication: LogIn
 async function signInWithGitHub() {
   const { error } = await supabase.auth.signInWithOAuth({

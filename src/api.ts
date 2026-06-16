@@ -43,7 +43,7 @@ export function pickFiveRandomIds(allIds: string[]): string[] {
 
   for (let i = 0; i < totalRounds; i++) {
     const randomIndex = Math.floor(Math.random() * pool.length);
-    // Entfernt das Element aus dem Pool, damit es nicht doppelt gezogen werden kann
+    // Entfernt das Element aus dem Pool, damit es nicht doppelt gezogen werden kann -->gilt nur für eine Spielrunde: Problem?
     const [pickedId] = pool.splice(randomIndex, 1);
     selectedIds.push(pickedId);
   }
@@ -96,67 +96,3 @@ export async function saveScenarioScore({
 
   return data;
 }
-// async function insertData() {
-//   const { error } = await supabase.from("Test").insert({
-//     column_name: "Hallo",
-//     Test_Array: ["ABC"],
-//     Test_Object: { userId: "BeispielId" },
-//   });
-//   if (error) console.error(error);
-//   fetchData();
-// }
-
-// async function deleteData() {
-//   const { error } = await supabase
-//     .from("Test")
-//     .delete()
-//     .eq("column_name", "Hallo");
-//   if (error) console.error(error);
-//   fetchData();
-// }
-
-// async function updateData() {
-//   const { error } = await supabase
-//     .from("Test")
-//     .update({ column_name: "Hallodri" })
-
-//     .eq("column_name", "Hallo");
-//   if (error) console.error(error);
-//   fetchData();
-// }
-
-// Daten-Fetch, sobald sich die Session ändert
-// useEffect(() => {
-//   if (session) {
-//     fetchData();
-//     fetchNtoM();
-//   } else {
-//     setTableData([]);
-//   }
-// }, [session, fetchData, fetchNtoM]);
-
-// Daten abrufen: useCallback verhindert, dass die Funktion bei jedem Rendern neu erstellt wird
-// const fetchData = useCallback(async () => {
-//   const { data, error } = await supabase
-//     .from("Test")
-//     .select("id, column_name, created_at, Test_Array, Test_Object")
-//     .eq("column_name", "Supername");
-
-//   if (error) {
-//     console.error(error);
-//     return;
-//   }
-//   if (data) {
-//     setTableData(data as unknown as TableRow[]);
-//   }
-// }, []);
-
-// //relationale Abfrage
-// const fetchNtoM = useCallback(async () => {
-//   const { data, error } = await supabase
-//     .from("Schüler")
-//     .select(
-//       "lastname:Nachname, course_student:Schüler_Kurs(Note, course:Kurs!Schüler_Kurs_Kursnummer_fkey(Name))",
-//     );
-//   console.log(data, error);
-// }, []);

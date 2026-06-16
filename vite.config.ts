@@ -5,10 +5,10 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/fahrschulapp/",
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      // Verbindet das "@"-Zeichen mit deinem "src"-Ordner
       "@": path.resolve(__dirname, "./src"),
     },
   },
