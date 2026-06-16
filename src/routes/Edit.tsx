@@ -14,12 +14,17 @@ import { useState, useEffect } from "react";
 import type { Scenario } from "../types/ScenarioTypes";
 import ScenarioDialog from "@/components/ScenarioDialog";
 import { supabase, fetchAllScenarios } from "@/api";
+import PreviewDialog from "@/components/PreviewDialog";
 
 export default function Edit() {
   // States für die Tabellendaten und die Dialogsteuerung
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingScenario, setEditingScenario] = useState<Scenario | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewScenarioId, setPreviewScenarioId] = useState<string | null>(
+    null,
+  );
 
   async function loadScenarios() {
     const data = await fetchAllScenarios();
@@ -95,6 +100,12 @@ export default function Edit() {
       console.error("Fehler beim Löschen des Szenarios:", error);
     }
   }
+
+  function handlePreviewClick(id: string) {
+    setPreviewScenarioId(id);
+    setIsPreviewOpen(true);
+  }
+
   return (
     <div className="w-full p-4 font-sans text-foreground">
       <div className="w-full">
@@ -108,7 +119,11 @@ export default function Edit() {
           onSave={handleSaveScenario}
           initialData={editingScenario}
         />
-
+        <PreviewDialog
+          isOpen={isPreviewOpen}
+          onOpenChange={setIsPreviewOpen}
+          currentScenarioId={previewScenarioId}
+        />
         <Button
           className="flex justify-center items-center gap-2 mb-4 bg-primary text-primary-foreground hover:bg-primary-hover font-semibold transition-colors shadow-sm"
           onClick={handleCreateClick}
@@ -215,6 +230,9 @@ export default function Edit() {
                       size="icon"
                       className="h-7 w-7 text-amber-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30"
                       title="Vorschau"
+                      onClick={() =>
+                        scenario.id && handlePreviewClick(scenario.id)
+                      }
                     >
                       <Eye className="h-4 w-4" />
                     </Button>

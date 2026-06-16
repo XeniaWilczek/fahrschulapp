@@ -28,8 +28,6 @@ export interface CarModelProps {
   alt: string;
 }
 
-// EMPFEHLUNG: Verschieben Sie carModels nach oben (außerhalb von Play()),
-// um unnötige Re-Renders im Arbeitsspeicher bei jedem State-Wechsel zu verhindern.
 const carModels: CarModelProps[] = [
   { id: 1, title: "Ford Focus", src: fordFocusImg, alt: "Rotes Auto" },
   { id: 2, title: "VW Tiguan", src: vwTiguanImg, alt: "Blaues Auto" },
@@ -140,6 +138,7 @@ export default function Play() {
     // Neue Szenarien laden
     await loadScenarioIds();
   }
+  //CarDiaog raus?
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-6">
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
