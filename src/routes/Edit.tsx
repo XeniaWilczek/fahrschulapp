@@ -21,35 +21,33 @@ export default function Edit() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingScenario, setEditingScenario] = useState<Scenario | null>(null);
 
-  // KORREKTUR: Funktion nach draußen gezogen, damit sie überall aufrufbar ist
   async function loadScenarios() {
     const data = await fetchAllScenarios();
     setScenarios(data);
   }
 
-  // Lädt die Daten automatisch beim allerersten Laden der Seite
+  // Lädt die Daten automatisch beim initialen Laden der Seite
   useEffect(() => {
     loadScenarios();
-  }, []); // Leeres Array ist völlig korrekt, da loadScenarios global bereitsteht
+  }, []);
 
   // Speichern oder Aktualisieren eines Szenarios in Supabase
   async function handleSaveScenario(data: Scenario) {
     try {
-      // Das Payload-Objekt nutzt jetzt exakt deine Supabase-Schreibweise mit Unterstrichen
       const payload = {
         title: data.title,
-        image_url: data.imageUrl,
-        start_x: data.startpointX,
-        start_y: data.startpointY,
-        end_x: data.endpointX,
-        end_y: data.endpointY,
+        imageUrl: data.imageUrl,
+        startpointX: data.startpointX,
+        endpointX: data.endpointX,
+        startpointY: data.startpointY,
+        endpointY: data.endpointY,
         question: data.question,
         answers: data.answers,
-        correct_answer: data.correctAnswer,
+        correctAnswer: data.correctAnswer,
       };
 
       if (data.id) {
-        // BEARBEITEN: Aktualisiert den bestehenden Datensatz in Supabase
+        // Aktualisiert bestehenden Datensatz (Bearbeiten-Modus)
         const { error } = await supabase
           .from("scenarios")
           .update(payload)
@@ -57,34 +55,34 @@ export default function Edit() {
 
         if (error) throw error;
       } else {
-        // NEU ANLEGEN: Erstellt einen neuen Eintrag in Supabase
+        // Erstellt neuen Eintrag in Supabase (Erstellen-Modus)
         const { error } = await supabase.from("scenarios").insert([payload]);
 
         if (error) throw error;
       }
 
-      // Dialog schließen, Editier-Zustand leeren und Tabelle live aktualisieren
+      // Dialog schließen, Editier-Zustand leeren und Tabelle aktualisieren
       setIsDialogOpen(false);
       setEditingScenario(null);
-      loadScenarios(); // Funktioniert jetzt fehlerfrei!
+      loadScenarios();
     } catch (error) {
       console.error("Fehler beim Speichern in Supabase:", error);
     }
   }
 
-  // Öffnet den Dialog sauber im Erstellen-Modus
+  // Öffnet den Dialog im Erstellen-Modus
   function handleCreateClick() {
     setEditingScenario(null);
     setIsDialogOpen(true);
   }
 
-  // Öffnet den Dialog im Bearbeiten-Modus mit den Zeilendaten
+  // Öffnet den Dialog im Bearbeiten-Modus mit den Daten
   function handleEditClick(scenario: Scenario) {
     setEditingScenario(scenario);
     setIsDialogOpen(true);
   }
 
-  // Löscht ein Szenario anhand der ID aus Supabase
+  // Löscht ein Szenario anhand der ID
   async function handleDeleteScenario(id: string) {
     if (!confirm("Möchtest du dieses Szenario wirklich löschen?")) return;
 
@@ -92,7 +90,7 @@ export default function Edit() {
       const { error } = await supabase.from("scenarios").delete().eq("id", id);
 
       if (error) throw error;
-      loadScenarios(); // Funktioniert jetzt fehlerfrei!
+      loadScenarios();
     } catch (error) {
       console.error("Fehler beim Löschen des Szenarios:", error);
     }
@@ -100,7 +98,6 @@ export default function Edit() {
   return (
     <div className="w-full p-4 font-sans text-foreground">
       <div className="w-full">
-        {/* Die Überschrift nutzt jetzt das globale Design */}
         <p className="text-left font-heading text-2xl font-bold py-4 text-foreground">
           Übersicht Szenarien:
         </p>
@@ -121,7 +118,6 @@ export default function Edit() {
         </Button>
       </div>
 
-      {/* overflow-x-auto schützt das Layout, text-xs/p-2 spart massiv Platz */}
       <div className="rounded-md border border-border bg-background shadow-sm overflow-x-auto w-full text-xs tracking-tight">
         <Table>
           <TableHeader>
@@ -159,22 +155,19 @@ export default function Edit() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {/* Rendert dynamisch alle Szenarien aus deiner Supabase-Datenbank */}
             {scenarios.map((scenario) => (
               <TableRow
                 key={scenario.id || Math.random()}
                 className="border-border"
               >
-                {/* KORREKTUR: max-w-30 wurde zu max-w-[120px] geändert, damit truncate funktioniert */}
                 <TableCell
-                  className="p-2 font-medium text-foreground max-w-[120px] truncate"
+                  className="p-2 font-medium text-foreground max-w-30 truncate"
                   title={scenario.title}
                 >
                   {scenario.title}
                 </TableCell>
-                {/* KORREKTUR: max-w-30 wurde zu max-w-[120px] geändert */}
                 <TableCell
-                  className="p-2 max-w-[120px] truncate font-mono text-muted-foreground"
+                  className="p-2 max-w-30 truncate font-mono text-muted-foreground"
                   title={scenario.imageUrl}
                 >
                   {scenario.imageUrl}
@@ -192,13 +185,13 @@ export default function Edit() {
                   {scenario.endpointY}
                 </TableCell>
                 <TableCell
-                  className="p-2 text-foreground max-w-[150px] truncate"
+                  className="p-2 text-foreground max-w-37.5 truncate"
                   title={scenario.question}
                 >
                   {scenario.question}
                 </TableCell>
                 <TableCell
-                  className="p-2 text-foreground max-w-[150px] truncate"
+                  className="p-2 text-foreground max-w-37.5 truncate"
                   title={
                     Array.isArray(scenario.answers)
                       ? scenario.answers.join(", ")
@@ -210,7 +203,7 @@ export default function Edit() {
                     : ""}
                 </TableCell>
                 <TableCell
-                  className="p-2 text-foreground max-w-[120px] truncate"
+                  className="p-2 text-foreground max-w-30 truncate"
                   title={scenario.correctAnswer}
                 >
                   {scenario.correctAnswer}
@@ -225,8 +218,6 @@ export default function Edit() {
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
-
-                    {/* Ruft die Bearbeiten-Funktion auf und lädt die Daten in den Dialog */}
                     <Button
                       variant="ghost"
                       size="icon"
@@ -236,8 +227,6 @@ export default function Edit() {
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
-
-                    {/* Löscht den Eintrag direkt über die Supabase-ID */}
                     <Button
                       variant="ghost"
                       size="icon"
@@ -253,8 +242,6 @@ export default function Edit() {
                 </TableCell>
               </TableRow>
             ))}
-
-            {/* Falls noch gar keine Daten vorhanden sind */}
             {scenarios.length === 0 && (
               <TableRow>
                 <TableCell

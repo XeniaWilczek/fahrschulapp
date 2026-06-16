@@ -19,7 +19,7 @@ export async function fetchAllScenarios(): Promise<Scenario[]> {
   return data as Scenario[];
 }
 
-//Laden alles SzenarioIds
+//Laden aller SzenarioIds für das Spiel
 export async function fetchAllScenarioIds(): Promise<string[]> {
   const { data, error } = await supabase.from("scenarios").select("id");
 
@@ -32,7 +32,7 @@ export async function fetchAllScenarioIds(): Promise<string[]> {
   return data.map((item) => item.id);
 }
 
-// 5 zufällige Ids aus einem übergebenen Gesamt-Array
+// 5 zufällige Ids aus einem übergebenen Gesamt-Array laden
 export function pickFiveRandomIds(allIds: string[]): string[] {
   // Kopie des Gesamt-Arrays erstellen, um das Original nicht zu verändern
   const pool = [...allIds];

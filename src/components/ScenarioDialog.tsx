@@ -11,8 +11,6 @@ import {
 import { Button } from "./ui/button";
 import type { Scenario } from "../types/ScenarioTypes";
 
-// WICHTIG: Importiert den zentralen Typen direkt aus deiner API-Datei
-
 interface ScenarioDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -26,11 +24,11 @@ export default function ScenarioDialog({
   onSave,
   initialData,
 }: ScenarioDialogProps) {
-  // Separater Text-State für das Antworten-Feld (Komma-Trennung für den Nutzer)
+  // Separater State für das Antworten-Feld (Komma-Trennung für den Nutzer)
   const [answersInput, setAnswersInput] = useState("");
 
-  // Der Formular-State basiert auf dem echten Supabase-Datenbank-Typen
-  // Partial<Scenario> erlaubt es, dass die 'id' beim Erstellen eines neuen Szenarios noch fehlt
+  // Der Formular-State basiert auf dem Supabase-Typen "Scenario"
+  // Partial<Scenario> erlaubt es, dass die id beim Erstellen eines neuen Szenarios fehlt (id kommt von Supabase)
   const [formData, setFormData] = useState<Partial<Scenario>>({
     title: "",
     imageUrl: "",
@@ -43,7 +41,7 @@ export default function ScenarioDialog({
     correctAnswer: "",
   });
 
-  // Synchronisiert das Formular mit vorhandenen Daten (Bearbeiten-Modus) oder leert es (Erstellen-Modus)
+  // Zeigt vorhandene Daten an (Bearbeiten-Modus) oder leert die Felder (Erstellen-Modus)
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
@@ -53,7 +51,6 @@ export default function ScenarioDialog({
           : "",
       );
     } else {
-      // Setzt das Formular zurück auf Standardwerte beim Erstellen-Modus
       setFormData({
         title: "",
         imageUrl: "",
@@ -69,13 +66,13 @@ export default function ScenarioDialog({
     }
   }, [initialData, isOpen]);
 
-  // Universelle Funktion für Text- und Nummern-Eingaben
+  // Universelle Funktion für Text- und Nummer-Eingaben
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value, type } = e.target;
     setFormData(function (prev) {
       return {
         ...prev,
-        [name]: type === "number" ? Number(value) : value,
+        [name]: type === "number" ? Number(value) : value, //Input-Eingaben sind immmer Strings
       };
     });
   }
