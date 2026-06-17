@@ -1,4 +1,4 @@
-import { fetchScenarioById } from "../api";
+import { fetchScenarioById, getSignedUrl } from "../api";
 import { useRef, useEffect, useState } from "react";
 import type { Scenario } from "@/types/ScenarioTypes";
 import type { CarModelProps } from "@/routes/Play";
@@ -14,6 +14,7 @@ export default function Canvas({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scenario, setScenario] = useState<Scenario | null>(null);
+  const [signedRoadUrl, setSignedRoadUrl] = useState<string | null>(null);
 
   // Verhindert erneutes Rendering des Scenarios, falls Play.tsx die Funktion neu rendert
   const onScenarioLoadedRef = useRef(onScenarioLoaded);
@@ -25,17 +26,22 @@ export default function Canvas({
   useEffect(() => {
     if (!currentScenarioId) return;
 
-    fetchScenarioById(currentScenarioId).then((data) => {
+    fetchScenarioById(currentScenarioId).then(async (data) => {
       if (data) {
         setScenario(data);
         onScenarioLoadedRef.current(data);
+
+        // Hier holen wir uns fliegend die Signed URL für das Hintergrundbild (gültig für 1 Stunde)
+        const url = await getSignedUrl(data.imageUrl, 3600);
+        setSignedRoadUrl(url);
       }
     });
   }, [currentScenarioId]);
 
   // useEffect für Animation
   useEffect(() => {
-    if (!scenario) return;
+    // KORREKTUR 1: Der Effekt bricht jetzt auch ab, wenn die signedRoadUrl noch fehlt!
+    if (!scenario || !signedRoadUrl) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -104,7 +110,9 @@ export default function Canvas({
     });
 
     carImage.src = selectedCar.src;
-    roadImage.src = scenario.imageUrl;
+
+    // KORREKTUR 2: Benutzt jetzt signedRoadUrl statt scenario.imageUrl!
+    roadImage.src = signedRoadUrl;
 
     Promise.all([loadRoad, loadCar]).then(() => {
       if (!isCleanedUp) {
@@ -116,9 +124,11 @@ export default function Canvas({
       isCleanedUp = true;
       cancelAnimationFrame(animationFrameId);
     };
-  }, [scenario, selectedCar]);
+    // signedRoadUrl als dependency
+  }, [scenario, selectedCar, signedRoadUrl]);
 
-  if (!scenario) {
+  // Wartet beim Laden auch auf die Bild-URL
+  if (!scenario || !signedRoadUrl) {
     return (
       <div className="text-center p-4 text-sm text-slate-500">
         Szenario wird geladen...

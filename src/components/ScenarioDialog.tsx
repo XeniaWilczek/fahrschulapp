@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Field } from "../components/ui/field";
@@ -10,6 +10,7 @@ import {
 } from "../components/ui/dialog";
 import { Button } from "./ui/button";
 import type { Scenario } from "../types/ScenarioTypes";
+import { uploadFile } from "@/api";
 
 interface ScenarioDialogProps {
   isOpen: boolean;
@@ -40,6 +41,7 @@ export default function ScenarioDialog({
     answers: [],
     correctAnswer: "",
   });
+  const fileInput = useRef(null);
 
   // Zeigt vorhandene Daten an (Bearbeiten-Modus) oder leert die Felder (Erstellen-Modus)
   useEffect(() => {
@@ -78,10 +80,24 @@ export default function ScenarioDialog({
   }
 
   // Absenden des Formulars
-  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    // Verarbeitet den getippten Text mit Kommas zu echten Array
+    // 1. Prüfen, ob eine Datei im Input ausgewählt wurde
+    const file = fileInput.current?.files?.[0];
+    let imagePath = formData.imageUrl; // Standardmäßig den alten Pfad behalten (wichtig für den Bearbeiten-Modus)
+
+    if (file) {
+      const imageResult = await uploadFile(file);
+      if (imageResult?.path) {
+        imagePath = imageResult.path; // Holt den sauberen Pfad-String aus dem zurückgegebenen 'data'-Objekt
+      } else {
+        alert("Fehler beim Hochladen des Bildes.");
+        return;
+      }
+    }
+
+    // Verarbeitet den getippten Text mit Kommas zu echtem Array
     const answersArray = answersInput
       .split(",")
       .map((answer) => answer.trim())
@@ -91,11 +107,12 @@ export default function ScenarioDialog({
     const finalData: Scenario = {
       ...formData,
       answers: answersArray,
-    } as Scenario; // Sichere Typumwandlung, da die übergeordnete Funktion die ID beim Update liest oder Supabase sie beim Einfügen generiert
+      imageUrl: imagePath ?? "", // Speichert den Pfad-String (z.B. "backgrounds/name.png0.123") in der DB
+    } as Scenario;
 
     onSave(finalData);
 
-    // States nach dem Speichern zurücksetzen
+    // States nach dem Speichern zurücksetzen (Dein bestehender Reset-Code...)
     setAnswersInput("");
     setFormData({
       title: "",
@@ -145,16 +162,15 @@ export default function ScenarioDialog({
               htmlFor="imageUrl"
               className="text-sm font-semibold text-foreground/90"
             >
-              Bild-URL:
+              Hintergrundbild hochladen:
             </Label>
             <Input
               id="imageUrl"
-              name="imageUrl"
-              placeholder="Bild-URL eingeben"
-              type="text"
-              value={formData.imageUrl || ""}
-              onChange={handleChange}
-              className="placeholder:font-normal text-base"
+              ref={fileInput} // Behält deine Referenz, um die Datei in handleSubmit auszulesen
+              type="file"
+              accept="image/*" // Erlaubt dem Nutzer nur die Auswahl von Bildern
+              className="text-base cursor-pointer"
+              // Kein 'name', kein 'value' und kein 'onChange={handleChange}' für diesen Datei-Input!
             />
           </Field>
 

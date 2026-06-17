@@ -96,3 +96,31 @@ export async function saveScenarioScore({
 
   return data;
 }
+
+export async function uploadFile(file: File) {
+  const { data, error } = await supabase.storage
+    .from("backgrounds")
+    .upload(file.name + Math.random(), file);
+  if (error) {
+    console.error("Fehler beim Upload in Supabase Storage:", error.message);
+    return null;
+  }
+  return data;
+}
+
+export async function getSignedUrl(
+  filePath: string,
+  expiresInSeconds: number = 3600,
+): Promise<string | null> {
+  const { data, error } = await supabase.storage
+    .from("backgrounds")
+    .createSignedUrl(filePath, expiresInSeconds);
+
+  if (error) {
+    console.error("Fehler beim Erstellen der Signed URL:", error.message);
+    return null;
+  }
+
+  // Gibt die fertige, temporäre URL für dein Canvas/Bild-Tag zurück
+  return data.signedUrl;
+}

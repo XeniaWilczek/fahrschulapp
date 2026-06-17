@@ -141,7 +141,7 @@ export default function Edit() {
                 Titel
               </TableHead>
               <TableHead className="p-2 font-semibold text-foreground">
-                Bild-URL
+                Bild-Datei
               </TableHead>
               <TableHead className="p-2 font-semibold text-foreground">
                 Startpunkt-X
