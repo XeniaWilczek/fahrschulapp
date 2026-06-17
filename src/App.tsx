@@ -21,7 +21,7 @@ const router = createBrowserRouter(
   ],
   {
     // Lokal (DEV-Modus) wird "/" genutzt, auf dem Server wird "/fahrschulapp" genutzt
-    basename: import.meta.env.DEV ? "/" : "/fahrschulapp",
+    basename: "/fahrschulapp",
   },
 );
 
