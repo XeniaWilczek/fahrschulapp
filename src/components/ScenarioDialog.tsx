@@ -41,7 +41,7 @@ export default function ScenarioDialog({
     answers: [],
     correctAnswer: "",
   });
-  const fileInput = useRef(null);
+  const fileInput = useRef<HTMLInputElement | null>(null);
 
   // Zeigt vorhandene Daten an (Bearbeiten-Modus) oder leert die Felder (Erstellen-Modus)
   useEffect(() => {
