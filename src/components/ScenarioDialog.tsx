@@ -11,6 +11,7 @@ import {
 import { Button } from "./ui/button";
 import type { Scenario } from "../types/ScenarioTypes";
 import { uploadFile } from "@/api";
+import { Plus, X } from "lucide-react";
 
 interface ScenarioDialogProps {
   isOpen: boolean;
@@ -25,9 +26,6 @@ export default function ScenarioDialog({
   onSave,
   initialData,
 }: ScenarioDialogProps) {
-  // Separater State für das Antworten-Feld (Komma-Trennung für den Nutzer)
-  const [answersInput, setAnswersInput] = useState("");
-
   // Der Formular-State basiert auf dem Supabase-Typen "Scenario"
   // Partial<Scenario> erlaubt es, dass die id beim Erstellen eines neuen Szenarios fehlt (id kommt von Supabase)
   const [formData, setFormData] = useState<Partial<Scenario>>({
@@ -38,7 +36,7 @@ export default function ScenarioDialog({
     endpointX: 0,
     endpointY: 0,
     question: "",
-    answers: [],
+    answers: [""], //Startet mit einem leeren Eingabefeld für die erste Antwort
     correctAnswer: "",
   });
   const fileInput = useRef<HTMLInputElement | null>(null);
@@ -46,12 +44,14 @@ export default function ScenarioDialog({
   // Zeigt vorhandene Daten an (Bearbeiten-Modus) oder leert die Felder (Erstellen-Modus)
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
-      setAnswersInput(
-        Array.isArray(initialData.answers)
-          ? initialData.answers.join(", ")
-          : "",
-      );
+      setFormData({
+        ...initialData,
+        // answers muss ein Array sein und mindestens ein leeres Feld haben
+        answers:
+          Array.isArray(initialData.answers) && initialData.answers.length > 0
+            ? initialData.answers
+            : [""],
+      });
     } else {
       setFormData({
         title: "",
@@ -61,10 +61,9 @@ export default function ScenarioDialog({
         endpointX: 0,
         endpointY: 0,
         question: "",
-        answers: [],
+        answers: [""],
         correctAnswer: "",
       });
-      setAnswersInput("");
     }
   }, [initialData, isOpen]);
 
@@ -79,41 +78,73 @@ export default function ScenarioDialog({
     });
   }
 
+  // Ändert den Text einer bestimmten Antwort im Array basierend auf dem Index
+  function handleAnswerChange(index: number, value: string) {
+    setFormData(function (prev) {
+      const updatedAnswers = [...(prev.answers || [])];
+      updatedAnswers[index] = value;
+      return {
+        ...prev,
+        answers: updatedAnswers,
+      };
+    });
+  }
+
+  // Hinzufügen eines Antwortfeld hinzu
+  function addAnswerField() {
+    setFormData(function (prev) {
+      return {
+        ...prev,
+        answers: [...(prev.answers || []), ""],
+      };
+    });
+  }
+
+  // Löschen eines Antwortfelds basierend auf dem Index
+  function removeAnswerField(index: number) {
+    setFormData(function (prev) {
+      const updatedAnswers = (prev.answers || []).filter((_, i) => i !== index);
+      // Es sollte immer mindestens ein Feld übrig bleiben
+      return {
+        ...prev,
+        answers: updatedAnswers.length > 0 ? updatedAnswers : [""],
+      };
+    });
+  }
+
   // Absenden des Formulars
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    // 1. Prüfen, ob eine Datei im Input ausgewählt wurde
+    // Prüfen, ob eine Datei im Input ausgewählt wurde
     const file = fileInput.current?.files?.[0];
     let imagePath = formData.imageUrl; // Standardmäßig den alten Pfad behalten (wichtig für den Bearbeiten-Modus)
 
     if (file) {
       const imageResult = await uploadFile(file);
       if (imageResult?.path) {
-        imagePath = imageResult.path; // Holt den sauberen Pfad-String aus dem zurückgegebenen 'data'-Objekt
+        imagePath = imageResult.path; // Holt den Pfad-String aus dem zurückgegebenen 'data'-Objekt
       } else {
         alert("Fehler beim Hochladen des Bildes.");
         return;
       }
     }
 
-    // Verarbeitet den getippten Text mit Kommas zu echtem Array
-    const answersArray = answersInput
-      .split(",")
+    // Filtert leere Felder heraus und schneidet Leerzeichen am Anfang/Ende ab
+    const cleanAnswers = (formData.answers || [])
       .map((answer) => answer.trim())
       .filter((answer) => answer !== "");
 
     // Erstellt Objekt für Supabase-Array
     const finalData: Scenario = {
       ...formData,
-      answers: answersArray,
+      answers: cleanAnswers,
       imageUrl: imagePath ?? "", // Speichert den Pfad-String (z.B. "backgrounds/name.png0.123") in der DB
     } as Scenario;
 
     onSave(finalData);
 
     // States nach dem Speichern zurücksetzen (Dein bestehender Reset-Code...)
-    setAnswersInput("");
     setFormData({
       title: "",
       imageUrl: "",
@@ -122,7 +153,7 @@ export default function ScenarioDialog({
       endpointX: 0,
       endpointY: 0,
       question: "",
-      answers: [],
+      answers: [""],
       correctAnswer: "",
     });
   }
@@ -170,8 +201,16 @@ export default function ScenarioDialog({
               type="file"
               accept="image/*" // Erlaubt dem Nutzer nur die Auswahl von Bildern
               className="text-base cursor-pointer"
-              // Kein 'name', kein 'value' und kein 'onChange={handleChange}' für diesen Datei-Input!
             />
+            {/* Zeigt im Bearbeiten-Modus den aktuellen Status an */}
+            {formData.imageUrl && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Aktuell verknüpft:{" "}
+                <span className="font-mono text-foreground">
+                  {formData.imageUrl.split("/").pop()}
+                </span>
+              </p>
+            )}
           </Field>
 
           <div className="grid grid-cols-2 gap-2">
@@ -266,26 +305,48 @@ export default function ScenarioDialog({
             />
           </Field>
 
-          <Field>
-            <Label
-              htmlFor="answers"
-              className="text-sm font-semibold text-foreground/90"
-            >
-              Antworten (mit Komma trennen):
-            </Label>
-            <Input
-              id="answers"
-              name="answers"
-              placeholder="Antwort 1, Antwort 2, Antwort 3"
-              type="text"
-              value={answersInput}
-              onChange={function (e) {
-                setAnswersInput(e.target.value);
-              }}
-              className="placeholder:font-normal text-base"
-            />
-          </Field>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-semibold text-foreground/90">
+                3 Antwortmöglichkeiten:
+              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addAnswerField}
+                className="h-8 px-2 text-xs flex items-center gap-1 border-dashed"
+              >
+                <Plus className="h-4 w-4"></Plus> Antwort hinzufügen
+              </Button>
+            </div>
 
+            <div className="space-y-2 max-h-50 overflow-y-auto pr-1">
+              {(formData.answers || []).map((answer, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Input
+                    placeholder={`Antwort ${index + 1} eingeben`}
+                    type="text"
+                    value={answer}
+                    onChange={(e) => handleAnswerChange(index, e.target.value)}
+                    className="placeholder:font-normal text-base flex-1"
+                  />
+                  {(formData.answers || []).length > 1 && (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeAnswerField(index)}
+                      className="h-8 px-3 bg-red-600 hover:bg-red-700 text-white"
+                      title="Antwort entfernen"
+                    >
+                      <X className="h-4 w-4"></X>
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
           <Field>
             <Label
               htmlFor="correctAnswer"
