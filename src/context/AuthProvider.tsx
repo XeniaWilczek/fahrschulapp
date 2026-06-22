@@ -34,7 +34,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       setLoading(false);
     });
 
-    // Auf Änderungen des Auth-States reagieren
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, currentSession) => {
@@ -45,9 +44,16 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     return () => subscription.unsubscribe();
   }, []);
+
   const signInWithGitHub = async () => {
+    // Baut die URL exakt auf die Startseite deiner GitHub Pages Anwendung inklusive der Router-Raute
+    const redirectToUrl = `${window.location.origin}/fahrschulapp/#/`;
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "github",
+      options: {
+        redirectTo: redirectToUrl,
+      },
     });
     if (error) console.error("GitHub Login Fehler:", error.message);
   };
@@ -56,16 +62,22 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     const { error } = await supabase.auth.signOut();
     if (error) console.error("Logout Fehler:", error.message);
   };
+
   return (
     <AuthContext.Provider
       value={{ user, session, loading, logOut, signInWithGitHub }}
     >
-      {children}
+      {loading ? (
+        <div className="flex h-screen items-center justify-center">
+          Lade Spieldaten...
+        </div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 }
 
-// 5. Custom Hook für Zugriff in anderen Komponenten
 export function useAuthContext() {
   const context = useContext(AuthContext);
   if (!context) {
