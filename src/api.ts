@@ -5,6 +5,14 @@ import type { Scenario } from "./types/ScenarioTypes";
 export const supabase = createClient<Database>(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_KEY,
+
+  {
+    auth: {
+      flowType: "implicit", // Wichtig für HashRouter/GitHub Pages
+      autoRefreshToken: true,
+      persistSession: true,
+    },
+  },
 );
 
 //Laden aller Szenario-Objekte in ein Array für Listen-Ansicht
