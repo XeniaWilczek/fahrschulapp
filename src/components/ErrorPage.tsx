@@ -4,8 +4,8 @@ function ErrorPage() {
   const error: ErrorResponse = useRouteError() as ErrorResponse;
   return (
     <div>
-      <h1>Oops!</h1>
-      <p>Sorry, an unexpected error has occurred.</p>
+      <h1>Hoppla!</h1>
+      <p>Es ist ein unerwarteter Fehler aufgetreten.</p>
       <p>
         <i>{error.statusText}</i>
       </p>

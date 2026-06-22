@@ -24,7 +24,7 @@ export async function fetchAllScenarios(): Promise<Scenario[]> {
     return [];
   }
 
-  return data as Scenario[];
+  return data;
 }
 
 //Laden aller SzenarioIds für das Spiel
@@ -106,9 +106,11 @@ export async function saveScenarioScore({
 }
 
 export async function uploadFile(file: File) {
+  // upsert: true überschreibt die Datei mit exakt demselben Namen automatisch
   const { data, error } = await supabase.storage
     .from("backgrounds")
-    .upload(file.name + Math.random(), file);
+    .upload(file.name, file, { upsert: true });
+
   if (error) {
     console.error("Fehler beim Upload in Supabase Storage:", error.message);
     return null;
@@ -131,4 +133,39 @@ export async function getSignedUrl(
 
   // Gibt die fertige, temporäre URL für dein Canvas/Bild-Tag zurück
   return data.signedUrl;
+}
+export async function saveScenario(data: Scenario): Promise<void> {
+  const payload = {
+    title: data.title,
+    imageUrl: data.imageUrl,
+    startpointX: data.startpointX,
+    startpointY: data.startpointY,
+    endpointX: data.endpointX,
+    endpointY: data.endpointY,
+    question: data.question,
+    answers: data.answers,
+    correctAnswer: data.correctAnswer,
+  };
+
+  if (data.id) {
+    // Aktualisiert bestehenden Datensatz (Bearbeiten-Modus)
+    const { error } = await supabase
+      .from("scenarios")
+      .update(payload)
+      .eq("id", data.id);
+
+    if (error) throw error;
+  } else {
+    // Erstellt neuen Eintrag in Supabase (Erstellen-Modus)
+    const { error } = await supabase.from("scenarios").insert([payload]);
+
+    if (error) throw error;
+  }
+}
+
+// Szenario anhand der ID aus der Datenbank löschen
+export async function deleteScenario(id: string): Promise<void> {
+  const { error } = await supabase.from("scenarios").delete().eq("id", id);
+
+  if (error) throw error;
 }

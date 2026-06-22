@@ -45,9 +45,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInWithGitHub = async () => {
+  async function signInWithGitHub() {
     // Baut die URL exakt auf die Startseite deiner GitHub Pages Anwendung inklusive der Router-Raute
-    const redirectToUrl = `${window.location.origin}/fahrschulapp/#/`;
+    const redirectToUrl = `${window.location.origin}/fahrschulapp/`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "github",
@@ -56,12 +56,12 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       },
     });
     if (error) console.error("GitHub Login Fehler:", error.message);
-  };
+  }
 
-  const logOut = async () => {
+  async function logOut() {
     const { error } = await supabase.auth.signOut();
     if (error) console.error("Logout Fehler:", error.message);
-  };
+  }
 
   return (
     <AuthContext.Provider

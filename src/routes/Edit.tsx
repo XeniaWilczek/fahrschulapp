@@ -13,7 +13,8 @@ import {
 import { useState, useEffect } from "react";
 import type { Scenario } from "../types/ScenarioTypes";
 import ScenarioDialog from "@/components/ScenarioDialog";
-import { supabase, fetchAllScenarios } from "@/api";
+// WICHTIG: Hier wurden saveScenario und deleteScenario aus der API importiert. Der direkte 'supabase'-Import fällt weg!
+import { fetchAllScenarios, saveScenario, deleteScenario } from "@/api";
 import PreviewDialog from "@/components/PreviewDialog";
 
 export default function Edit() {
@@ -36,35 +37,11 @@ export default function Edit() {
     loadScenarios();
   }, []);
 
-  // Speichern oder Aktualisieren eines Szenarios in Supabase
+  // Speichern oder Aktualisieren eines Szenarios über die API
   async function handleSaveScenario(data: Scenario) {
     try {
-      const payload = {
-        title: data.title,
-        imageUrl: data.imageUrl,
-        startpointX: data.startpointX,
-        endpointX: data.endpointX,
-        startpointY: data.startpointY,
-        endpointY: data.endpointY,
-        question: data.question,
-        answers: data.answers,
-        correctAnswer: data.correctAnswer,
-      };
-
-      if (data.id) {
-        // Aktualisiert bestehenden Datensatz (Bearbeiten-Modus)
-        const { error } = await supabase
-          .from("scenarios")
-          .update(payload)
-          .eq("id", data.id);
-
-        if (error) throw error;
-      } else {
-        // Erstellt neuen Eintrag in Supabase (Erstellen-Modus)
-        const { error } = await supabase.from("scenarios").insert([payload]);
-
-        if (error) throw error;
-      }
+      // Nutzt die neue ausgelagerte API-Funktion
+      await saveScenario(data);
 
       // Dialog schließen, Editier-Zustand leeren und Tabelle aktualisieren
       setIsDialogOpen(false);
@@ -87,14 +64,13 @@ export default function Edit() {
     setIsDialogOpen(true);
   }
 
-  // Löscht ein Szenario anhand der ID
+  // Löscht ein Szenario anhand der ID über die API
   async function handleDeleteScenario(id: string) {
     if (!confirm("Möchtest du dieses Szenario wirklich löschen?")) return;
 
     try {
-      const { error } = await supabase.from("scenarios").delete().eq("id", id);
-
-      if (error) throw error;
+      // Nutzt die neue ausgelagerte API-Funktion
+      await deleteScenario(id);
       loadScenarios();
     } catch (error) {
       console.error("Fehler beim Löschen des Szenarios:", error);

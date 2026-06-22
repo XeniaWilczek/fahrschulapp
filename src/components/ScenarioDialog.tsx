@@ -20,6 +20,25 @@ interface ScenarioDialogProps {
   initialData?: Scenario | null;
 }
 
+// 1. Initialen Zustand als Konstante auslagern
+const INITIAL_SCENARIO_DATA: Partial<Scenario> = {
+  title: "",
+  imageUrl: "",
+  startpointX: 0,
+  startpointY: 0,
+  endpointX: 0,
+  endpointY: 0,
+  question: "",
+  answers: [""], // Startet mit einem leeren Eingabefeld für die erste Antwort
+  correctAnswer: "",
+};
+
+// Hilfsfunktion, um eine tiefe Kopie des initialen Zustands zu erzeugen (verhindert Array-Referenzfehler)
+const getInitialData = (): Partial<Scenario> => ({
+  ...INITIAL_SCENARIO_DATA,
+  answers: [""],
+});
+
 export default function ScenarioDialog({
   isOpen,
   onOpenChange,
@@ -28,17 +47,7 @@ export default function ScenarioDialog({
 }: ScenarioDialogProps) {
   // Der Formular-State basiert auf dem Supabase-Typen "Scenario"
   // Partial<Scenario> erlaubt es, dass die id beim Erstellen eines neuen Szenarios fehlt (id kommt von Supabase)
-  const [formData, setFormData] = useState<Partial<Scenario>>({
-    title: "",
-    imageUrl: "",
-    startpointX: 0,
-    startpointY: 0,
-    endpointX: 0,
-    endpointY: 0,
-    question: "",
-    answers: [""], //Startet mit einem leeren Eingabefeld für die erste Antwort
-    correctAnswer: "",
-  });
+  const [formData, setFormData] = useState<Partial<Scenario>>(getInitialData());
   const fileInput = useRef<HTMLInputElement | null>(null);
 
   // Zeigt vorhandene Daten an (Bearbeiten-Modus) oder leert die Felder (Erstellen-Modus)
@@ -53,17 +62,8 @@ export default function ScenarioDialog({
             : [""],
       });
     } else {
-      setFormData({
-        title: "",
-        imageUrl: "",
-        startpointX: 0,
-        startpointY: 0,
-        endpointX: 0,
-        endpointY: 0,
-        question: "",
-        answers: [""],
-        correctAnswer: "",
-      });
+      // 2. Nutzung der Hilfsfunktion beim Zurücksetzen im useEffect
+      setFormData(getInitialData());
     }
   }, [initialData, isOpen]);
 
@@ -144,18 +144,8 @@ export default function ScenarioDialog({
 
     onSave(finalData);
 
-    // States nach dem Speichern zurücksetzen (Dein bestehender Reset-Code...)
-    setFormData({
-      title: "",
-      imageUrl: "",
-      startpointX: 0,
-      startpointY: 0,
-      endpointX: 0,
-      endpointY: 0,
-      question: "",
-      answers: [""],
-      correctAnswer: "",
-    });
+    // 3. States nach dem Speichern über die Hilfsfunktion sauber zurücksetzen
+    setFormData(getInitialData());
   }
 
   return (

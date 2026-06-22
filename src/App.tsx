@@ -1,4 +1,4 @@
-import { createHashRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AuthProvider, { useAuthContext } from "./context/AuthProvider";
 import ErrorPage from "./components/ErrorPage";
 import Root from "./routes/Root";
@@ -10,6 +10,7 @@ import { Button } from "./components/ui/button";
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, signInWithGitHub } = useAuthContext();
 
+  // Wenn kein User eingeloggt ist, brechen wir das normale Layout ab und zeigen den Login-Screen
   if (!user) {
     return (
       <div className="flex flex-col h-[60vh] items-center justify-center gap-4 text-center px-4">
@@ -25,36 +26,42 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  // Wenn eingeloggt, zeige den eigentlichen Inhalt der Route
+  return children;
 }
 
-// 2. createHashRouter nutzen und die Routen mit <ProtectedRoute> umschließen
-const router = createHashRouter([
+const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <Root />,
+      errorElement: <ErrorPage />,
+      children: [
+        { index: true, element: <Rules /> },
+        {
+          path: "play",
+          element: (
+            <ProtectedRoute>
+              <Play />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "edit",
+          element: (
+            <ProtectedRoute>
+              <Edit />
+            </ProtectedRoute>
+          ),
+        },
+      ],
+    },
+  ],
   {
-    path: "/",
-    element: <Root />,
-    errorElement: <ErrorPage />,
-    children: [
-      { index: true, element: <Rules /> },
-      {
-        path: "play",
-        element: (
-          <ProtectedRoute>
-            <Play />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "edit",
-        element: (
-          <ProtectedRoute>
-            <Edit />
-          </ProtectedRoute>
-        ),
-      },
-    ],
+    // Lokal (DEV-Modus) wird "/" genutzt, auf dem Server wird "/fahrschulapp" genutzt
+    basename: "/fahrschulapp",
   },
-]); // Der 'basename' wird beim HashRouter nicht mehr benötigt, da alles hinter dem /#/ läuft
+);
 
 function App() {
   return (
