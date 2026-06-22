@@ -15,6 +15,7 @@ import { Button } from "../components/ui/button";
 import type { Scenario } from "@/types/ScenarioTypes";
 import Question from "@/components/Question";
 import Canvas from "../components/Canvas";
+import { useNavigate } from "react-router-dom";
 import {
   fetchAllScenarioIds,
   pickFiveRandomIds,
@@ -55,6 +56,8 @@ export default function Play() {
 
   // id des aktiven Szenarios anhand des aktuellen Index ermitteln
   const currentScenarioId = gameScenarioIds[currentStep];
+
+  const navigate = useNavigate();
 
   // einmalig Szenario-ids laden, 5 davon auswählen
   async function loadScenarioIds() {
@@ -133,12 +136,17 @@ export default function Play() {
     setGameScenarioIds([]);
     setGameId(null);
     setCarModel(null);
+
     // Auto-Dialog öffnen
     setIsOpen(true);
+
     // Neue Szenarien laden
     await loadScenarioIds();
+
+    // zurück zur Startseite navigieren
+    navigate("/");
   }
-  //CarDiaog auslagern?
+
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-6">
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
