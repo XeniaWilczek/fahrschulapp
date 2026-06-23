@@ -78,24 +78,29 @@ export async function saveScenarioScore({
   gameId,
   scenarioId,
   score,
-  userId = null,
+  userId,
 }: {
   gameId: string;
   scenarioId: string;
   score: number;
-  userId?: string | null;
+  userId: string | null;
 }) {
-  const { data, error } = await supabase
-    .from("scores")
-    .insert([
-      {
-        gameId: gameId,
-        scenarioId: scenarioId,
-        score: score,
-        userId: userId,
-      },
-    ])
-    .select();
+  const dataToInsert: {
+    gameId: string;
+    scenarioId: string;
+    score: number;
+    userId?: string;
+  } = {
+    gameId: gameId,
+    scenarioId: scenarioId,
+    score: score,
+  };
+
+  if (userId) {
+    dataToInsert.userId = userId;
+  }
+  console.log(dataToInsert);
+  const { data, error } = await supabase.from("scores").insert([dataToInsert]);
 
   if (error) {
     console.error("Fehler beim Speichern in der scores-Tabelle:", error);

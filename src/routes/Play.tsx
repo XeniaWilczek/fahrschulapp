@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,7 @@ import {
   pickFiveRandomIds,
   saveScenarioScore,
 } from "../api";
+import { useAuthContext } from "@/context/AuthProvider";
 
 export interface CarModelProps {
   id: number;
@@ -58,6 +59,8 @@ export default function Play() {
   const currentScenarioId = gameScenarioIds[currentStep];
 
   const navigate = useNavigate();
+
+  const { user } = useAuthContext();
 
   // einmalig Szenario-ids laden, 5 davon auswählen
   async function loadScenarioIds() {
@@ -106,7 +109,7 @@ export default function Play() {
         gameId: gameId,
         scenarioId: activeScenario.id.toString(),
         score: isCurrentCorrect ? 1 : 0,
-        userId: null,
+        userId: user?.id ?? null,
       });
 
       // Prüfen, ob noch Szenarien übrig sind

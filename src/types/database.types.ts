@@ -60,7 +60,7 @@ export type Database = {
           id: number
           scenarioId: string | null
           score: number | null
-          userId: string | null
+          userId: string
         }
         Insert: {
           created_at?: string
@@ -68,7 +68,7 @@ export type Database = {
           id?: number
           scenarioId?: string | null
           score?: number | null
-          userId?: string | null
+          userId?: string
         }
         Update: {
           created_at?: string
@@ -76,7 +76,7 @@ export type Database = {
           id?: number
           scenarioId?: string | null
           score?: number | null
-          userId?: string | null
+          userId?: string
         }
         Relationships: [
           {
@@ -86,26 +86,7 @@ export type Database = {
             referencedRelation: "scenarios"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "scores_userId_fkey"
-            columns: ["userId"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
-      }
-      users: {
-        Row: {
-          id: string
-        }
-        Insert: {
-          id?: string
-        }
-        Update: {
-          id?: string
-        }
-        Relationships: []
       }
     }
     Views: {

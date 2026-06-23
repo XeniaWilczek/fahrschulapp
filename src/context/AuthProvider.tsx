@@ -40,13 +40,17 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       setLoading(false);
+      console.log(currentSession);
     });
-
-    return () => subscription.unsubscribe();
+    console.log("mountAuth");
+    return () => {
+      subscription.unsubscribe();
+      console.log("unmountAuth");
+    };
   }, []);
 
   async function signInWithGitHub() {
-    // Baut die URL exakt auf die Startseite deiner GitHub Pages Anwendung inklusive der Router-Raute
+    // Baut die URL exakt auf die Startseite von GitHub Pages
     const redirectToUrl = `${window.location.origin}/fahrschulapp/`;
 
     const { error } = await supabase.auth.signInWithOAuth({
