@@ -1,3 +1,4 @@
+import type { Tables, TablesInsert } from "../types/database.types";
 import { useEffect, useRef, useState } from "react";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -21,7 +22,8 @@ interface ScenarioDialogProps {
 }
 
 // 1. Initialen Zustand als Konstante auslagern
-const INITIAL_SCENARIO_DATA: Partial<Scenario> = {
+// 1. Initialen Zustand als Konstante auslagern (Nutzt jetzt direkt den Supabase Insert-Typen)
+const INITIAL_SCENARIO_DATA: Partial<TablesInsert<"scenarios">> = {
   title: "",
   imageUrl: "",
   startpointX: 0,
@@ -29,12 +31,12 @@ const INITIAL_SCENARIO_DATA: Partial<Scenario> = {
   endpointX: 0,
   endpointY: 0,
   question: "",
-  answers: [""], // Startet mit einem leeren Eingabefeld für die erste Antwort
+  answers: [""],
   correctAnswer: "",
 };
 
-// Hilfsfunktion, um eine tiefe Kopie des initialen Zustands zu erzeugen (verhindert Array-Referenzfehler)
-const getInitialData = (): Partial<Scenario> => ({
+// Hilfsfunktion für eine tiefe Kopie
+const getInitialData = (): Partial<TablesInsert<"scenarios">> => ({
   ...INITIAL_SCENARIO_DATA,
   answers: [""],
 });
@@ -45,9 +47,9 @@ export default function ScenarioDialog({
   onSave,
   initialData,
 }: ScenarioDialogProps) {
-  // Der Formular-State basiert auf dem Supabase-Typen "Scenario"
-  // Partial<Scenario> erlaubt es, dass die id beim Erstellen eines neuen Szenarios fehlt (id kommt von Supabase)
-  const [formData, setFormData] = useState<Partial<Scenario>>(getInitialData());
+  // Der Formular-State nutzt jetzt direkt den Supabase-Typen
+  const [formData, setFormData] =
+    useState<Partial<Tables<"scenarios">>>(getInitialData());
   const fileInput = useRef<HTMLInputElement | null>(null);
 
   // Zeigt vorhandene Daten an (Bearbeiten-Modus) oder leert die Felder (Erstellen-Modus)
@@ -55,14 +57,12 @@ export default function ScenarioDialog({
     if (initialData) {
       setFormData({
         ...initialData,
-        // answers muss ein Array sein und mindestens ein leeres Feld haben
         answers:
           Array.isArray(initialData.answers) && initialData.answers.length > 0
             ? initialData.answers
             : [""],
       });
     } else {
-      // 2. Nutzung der Hilfsfunktion beim Zurücksetzen im useEffect
       setFormData(getInitialData());
     }
   }, [initialData, isOpen]);
@@ -73,7 +73,7 @@ export default function ScenarioDialog({
     setFormData(function (prev) {
       return {
         ...prev,
-        [name]: type === "number" ? Number(value) : value, //Input-Eingaben sind immmer Strings
+        [name]: type === "number" ? Number(value) : value,
       };
     });
   }
@@ -100,11 +100,10 @@ export default function ScenarioDialog({
     });
   }
 
-  // Löschen eines Antwortfelds basierend auf dem Index
+  // Löschen eines Antwortfeld basierend auf dem Index
   function removeAnswerField(index: number) {
     setFormData(function (prev) {
       const updatedAnswers = (prev.answers || []).filter((_, i) => i !== index);
-      // Es sollte immer mindestens ein Feld übrig bleiben
       return {
         ...prev,
         answers: updatedAnswers.length > 0 ? updatedAnswers : [""],
@@ -112,42 +111,47 @@ export default function ScenarioDialog({
     });
   }
 
-  // Absenden des Formulars
+  // Absenden des Formulars (Jetzt OHNE "as Scenario"!)
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    // Prüfen, ob eine Datei im Input ausgewählt wurde
     const file = fileInput.current?.files?.[0];
-    let imagePath = formData.imageUrl; // Standardmäßig den alten Pfad behalten (wichtig für den Bearbeiten-Modus)
+    let imagePath = formData.imageUrl;
 
     if (file) {
       const imageResult = await uploadFile(file);
       if (imageResult?.path) {
-        imagePath = imageResult.path; // Holt den Pfad-String aus dem zurückgegebenen 'data'-Objekt
+        imagePath = imageResult.path;
       } else {
         alert("Fehler beim Hochladen des Bildes.");
         return;
       }
     }
 
-    // Filtert leere Felder heraus und schneidet Leerzeichen am Anfang/Ende ab
     const cleanAnswers = (formData.answers || [])
       .map((answer) => answer.trim())
       .filter((answer) => answer !== "");
 
-    // Erstellt Objekt für Supabase-Array
-    const finalData: Scenario = {
-      ...formData,
+    // Wir erstellen ein exaktes Objekt vom Typ Tables<"scenarios">.
+    // Durch die Fallbacks weiß TypeScript, dass kein Wert mehr undefined sein kann.
+    const finalData: Tables<"scenarios"> = {
+      id: formData.id || "", // Behält die ID beim Update oder übergibt einen leeren String (wird von Supabase beim Insert generiert)
+      title: formData.title?.trim() || "",
+      question: formData.question?.trim() || "",
+      correctAnswer: formData.correctAnswer?.trim() || "",
       answers: cleanAnswers,
-      imageUrl: imagePath ?? "", // Speichert den Pfad-String (z.B. "backgrounds/name.png0.123") in der DB
-    } as Scenario;
+      imageUrl: imagePath ?? "",
+      startpointX: formData.startpointX ?? 0,
+      startpointY: formData.startpointY ?? 0,
+      endpointX: formData.endpointX ?? 0,
+      endpointY: formData.endpointY ?? 0,
+    };
 
     onSave(finalData);
 
-    // 3. States nach dem Speichern über die Hilfsfunktion sauber zurücksetzen
+    // States nach dem Speichern sauber zurücksetzen
     setFormData(getInitialData());
   }
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto bg-background text-foreground border border-border p-5 shadow-lg font-sans">
@@ -298,7 +302,7 @@ export default function ScenarioDialog({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-sm font-semibold text-foreground/90">
-                3 Antwortmöglichkeiten:
+                Antwortmöglichkeiten:
               </Label>
               <Button
                 type="button"
@@ -307,18 +311,22 @@ export default function ScenarioDialog({
                 onClick={addAnswerField}
                 className="h-8 px-2 text-xs flex items-center gap-1 border-dashed"
               >
-                <Plus className="h-4 w-4"></Plus> Antwort hinzufügen
+                <Plus className="h-4 w-4" /> Antwort hinzufügen
               </Button>
             </div>
 
             <div className="space-y-2 max-h-50 overflow-y-auto pr-1">
               {(formData.answers || []).map((answer, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div
+                  key={`answer-${index}`}
+                  className="flex items-center gap-2"
+                >
                   <Input
                     placeholder={`Antwort ${index + 1} eingeben`}
                     type="text"
                     value={answer}
                     onChange={(e) => handleAnswerChange(index, e.target.value)}
+                    required
                     className="placeholder:font-normal text-base flex-1"
                   />
                   {(formData.answers || []).length > 1 && (
@@ -330,13 +338,14 @@ export default function ScenarioDialog({
                       className="h-8 px-3 bg-red-600 hover:bg-red-700 text-white"
                       title="Antwort entfernen"
                     >
-                      <X className="h-4 w-4"></X>
+                      <X className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
               ))}
             </div>
           </div>
+
           <Field>
             <Label
               htmlFor="correctAnswer"

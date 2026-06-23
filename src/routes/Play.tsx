@@ -128,7 +128,9 @@ export default function Play() {
   }
 
   async function finishGame() {
-    // Reset
+    // gleich zur Startseite navigieren (Aufflackern des Dialogs vermeiden)
+    navigate("/");
+    // State erst danach ufräumen.
     setCurrentStep(0);
     setScore(0);
     setIsCurrentCorrect(null);
@@ -136,15 +138,6 @@ export default function Play() {
     setGameScenarioIds([]);
     setGameId(null);
     setCarModel(null);
-
-    // Auto-Dialog öffnen
-    setIsOpen(true);
-
-    // Neue Szenarien laden
-    await loadScenarioIds();
-
-    // zurück zur Startseite navigieren
-    navigate("/");
   }
 
   return (

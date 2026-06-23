@@ -18,38 +18,35 @@ export default function Question({
   const correctAnswer = normalize(scenario.correctAnswer);
 
   const isResolved = clickedAnswers.some(
-    (ans) => normalize(ans) === correctAnswer,
+    (answer) => normalize(answer) === correctAnswer,
   );
 
-  // Reset und Mischen bei neuem Szenario
   useEffect(() => {
     setClickedAnswers([]);
     setClickCount(0);
 
-    const answerCopy = [...scenario.answers];
-    const allPickedAnswers: string[] = [];
-    while (answerCopy.length > 0) {
-      const randomPointer = Math.floor(Math.random() * answerCopy.length);
-      const [pickedAnswer] = answerCopy.splice(randomPointer, 1);
-      allPickedAnswers.push(pickedAnswer);
+    const answers = [...scenario.answers];
+    for (let i = answers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [answers[i], answers[j]] = [answers[j], answers[i]];
     }
-    setShuffledAnswers(allPickedAnswers);
+    setShuffledAnswers(answers);
   }, [scenario]);
 
   function handleSelectAnswer(answer: string) {
-    // wenn die richtige Antwort gewählt wurde, ist kein weiterer Klick möglich
     if (isResolved) return;
 
-    if (clickedAnswers.includes(answer)) return;
+    const normalizedSelected = normalize(answer);
+
+    if (clickedAnswers.some((ans) => normalize(ans) === normalizedSelected))
+      return;
 
     const newClickCount = clickCount + 1;
     setClickCount(newClickCount);
-
     setClickedAnswers((prev) => [...prev, answer]);
 
-    const isCorrect = normalize(answer) === correctAnswer;
+    const isCorrect = normalizedSelected === correctAnswer;
 
-    // Punkt wird nur vergeben, wenn der erste Klick die korrekte Antwort ist
     if (newClickCount === 1) {
       onAnswerEvaluated(isCorrect);
     }
@@ -62,25 +59,32 @@ export default function Question({
       </p>
 
       <div className="flex flex-col gap-3">
-        {shuffledAnswers.map((answer, index) => {
+        {shuffledAnswers.map((answer) => {
           const normalizedAnswer = normalize(answer);
-          const hasBeenClicked = clickedAnswers.includes(answer);
+          const hasBeenClicked = clickedAnswers.some(
+            (a) => normalize(a) === normalizedAnswer,
+          );
           const isCorrect = normalizedAnswer === correctAnswer;
 
           const selectionStyles = hasBeenClicked
             ? isCorrect
               ? "bg-green-600 text-white border-none hover:bg-green-500"
               : "bg-destructive text-destructive-foreground border-none hover:bg-destructive/90"
-            : isResolved
-              ? "bg-muted text-muted-foreground opacity-60 cursor-not-allowed"
-              : "bg-primary text-primary-foreground hover:bg-primary-hover";
+            : "bg-primary text-primary-foreground hover:bg-primary-hover";
 
           return (
             <Button
-              key={index}
+              key={answer}
+              disabled={isResolved}
               className={cn(
                 "justify-start text-left w-full h-auto py-3 px-4 whitespace-normal wrap-break-word transition-all font-medium border",
                 selectionStyles,
+
+                "disabled:opacity-100",
+
+                "disabled:pointer-events-auto",
+
+                "disabled:cursor-not-allowed",
               )}
               onClick={() => handleSelectAnswer(answer)}
             >

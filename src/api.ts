@@ -71,7 +71,7 @@ export async function fetchScenarioById(id: string): Promise<Scenario | null> {
     console.error("Fehler beim Nachladen des Szenarios:", error);
     return null;
   }
-  return data as Scenario;
+  return data;
 }
 
 export async function saveScenarioScore({
@@ -105,8 +105,22 @@ export async function saveScenarioScore({
   return data;
 }
 
-export async function uploadFile(file: File) {
-  // upsert: true überschreibt die Datei mit exakt demselben Namen automatisch
+export async function uploadFile(file: File, oldFilePath?: string | null) {
+  // wenn  alter Bildpfad exisitert, diese Datei aus dem Storage löschen
+  if (oldFilePath) {
+    const { error: deleteError } = await supabase.storage
+      .from("backgrounds")
+      .remove([oldFilePath]);
+
+    if (deleteError) {
+      console.error(
+        "Fehler beim Löschen des alten Bildes vor dem Upload:",
+        deleteError.message,
+      );
+    }
+  }
+
+  // neues Bild hochladen (upsert: true überschreibt bei identischem Namen)
   const { data, error } = await supabase.storage
     .from("backgrounds")
     .upload(file.name, file, { upsert: true });
@@ -117,7 +131,6 @@ export async function uploadFile(file: File) {
   }
   return data;
 }
-
 export async function getSignedUrl(
   filePath: string,
   expiresInSeconds: number = 3600,
@@ -131,7 +144,7 @@ export async function getSignedUrl(
     return null;
   }
 
-  // Gibt die fertige, temporäre URL für dein Canvas/Bild-Tag zurück
+  // gibt fertige, temporäre URL für Canvas/Bild-Tag zurück
   return data.signedUrl;
 }
 export async function saveScenario(data: Scenario): Promise<void> {
