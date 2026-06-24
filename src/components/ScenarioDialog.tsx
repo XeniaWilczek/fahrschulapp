@@ -21,8 +21,8 @@ interface ScenarioDialogProps {
   initialData?: Scenario | null;
 }
 
-// 1. Initialen Zustand als Konstante auslagern
-// 1. Initialen Zustand als Konstante auslagern (Nutzt jetzt direkt den Supabase Insert-Typen)
+// Initialer Zustand ausgelagert
+
 const INITIAL_SCENARIO_DATA: Partial<TablesInsert<"scenarios">> = {
   title: "",
   imageUrl: "",
@@ -35,7 +35,7 @@ const INITIAL_SCENARIO_DATA: Partial<TablesInsert<"scenarios">> = {
   correctAnswer: "",
 };
 
-// Hilfsfunktion für eine tiefe Kopie
+// Hilfsfunktion für Kopie
 const getInitialData = (): Partial<TablesInsert<"scenarios">> => ({
   ...INITIAL_SCENARIO_DATA,
   answers: [""],
@@ -47,12 +47,13 @@ export default function ScenarioDialog({
   onSave,
   initialData,
 }: ScenarioDialogProps) {
-  // Der Formular-State nutzt jetzt direkt den Supabase-Typen
+  // Formular-State nutzt Supabase-Typen
   const [formData, setFormData] =
     useState<Partial<Tables<"scenarios">>>(getInitialData());
+  // Referenz auf Datei-Upload-Input: Bilddatei beim Absenden direkt auslesen, ohne Rendering bei jeder Änderung unnötig auszulösen
   const fileInput = useRef<HTMLInputElement | null>(null);
 
-  // Zeigt vorhandene Daten an (Bearbeiten-Modus) oder leert die Felder (Erstellen-Modus)
+  // Zeigt vorhandene Daten an (Bearbeiten-Modus) oder leert Input-Felder (Erstellen-Modus)
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -111,8 +112,7 @@ export default function ScenarioDialog({
     });
   }
 
-  // Absenden des Formulars (Jetzt OHNE "as Scenario"!)
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const file = fileInput.current?.files?.[0];

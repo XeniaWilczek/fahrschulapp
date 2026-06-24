@@ -16,7 +16,7 @@ export default function Canvas({
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [signedRoadUrl, setSignedRoadUrl] = useState<string | null>(null);
 
-  // Verhindert erneutes Rendering des Scenarios, falls Play.tsx die Funktion neu rendert
+  //Verhindert erneutes Rendering des Scenarios, falls Play.tsx die Funktion neu rendert
   const onScenarioLoadedRef = useRef(onScenarioLoaded);
   useEffect(() => {
     onScenarioLoadedRef.current = onScenarioLoaded;
@@ -28,10 +28,11 @@ export default function Canvas({
 
     fetchScenarioById(currentScenarioId).then(async (data) => {
       if (data) {
+        console.log(data);
         setScenario(data);
-        onScenarioLoadedRef.current(data);
+        onScenarioLoaded(data);
 
-        // Hier holen wir uns fliegend die Signed URL für das Hintergrundbild (gültig für 1 Stunde)
+        // signedURL für das Hintergrundbild holen (1 h gültig)
         const url = await getSignedUrl(data.imageUrl, 3600);
         setSignedRoadUrl(url);
       }
@@ -40,7 +41,7 @@ export default function Canvas({
 
   // useEffect für Animation
   useEffect(() => {
-    // KORREKTUR 1: Der Effekt bricht jetzt auch ab, wenn die signedRoadUrl noch fehlt!
+    // useEffect bricht ab, wenn signedRoadUrl fehlt
     if (!scenario || !signedRoadUrl) return;
 
     const canvas = canvasRef.current;
@@ -111,7 +112,6 @@ export default function Canvas({
 
     carImage.src = selectedCar.src;
 
-    // KORREKTUR 2: Benutzt jetzt signedRoadUrl statt scenario.imageUrl!
     roadImage.src = signedRoadUrl;
 
     Promise.all([loadRoad, loadCar]).then(() => {
@@ -127,7 +127,7 @@ export default function Canvas({
     // signedRoadUrl als dependency
   }, [scenario, selectedCar, signedRoadUrl]);
 
-  // Wartet beim Laden auch auf die Bild-URL
+  // wartet beim Laden auch auf die Bild-URL
   if (!scenario || !signedRoadUrl) {
     return (
       <div className="text-center p-4 text-sm text-slate-500">

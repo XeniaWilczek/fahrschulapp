@@ -13,7 +13,6 @@ import {
 import { useState, useEffect } from "react";
 import type { Scenario } from "../types/ScenarioTypes";
 import ScenarioDialog from "@/components/ScenarioDialog";
-// WICHTIG: Hier wurden saveScenario und deleteScenario aus der API importiert. Der direkte 'supabase'-Import fällt weg!
 import { fetchAllScenarios, saveScenario, deleteScenario } from "@/api";
 import PreviewDialog from "@/components/PreviewDialog";
 
@@ -32,7 +31,7 @@ export default function Edit() {
     setScenarios(data);
   }
 
-  // Lädt Daten automatisch beim initialen Laden der Seite
+  // Lädt Daten beim initialen Laden der Seite
   useEffect(() => {
     loadScenarios();
   }, []);
@@ -40,7 +39,6 @@ export default function Edit() {
   // Speichern oder Aktualisieren eines Szenarios über die API
   async function handleSaveScenario(data: Scenario) {
     try {
-      // Nutzt die neue ausgelagerte API-Funktion
       await saveScenario(data);
 
       // Dialog schließen, Editier-Zustand leeren und Tabelle aktualisieren
@@ -64,7 +62,7 @@ export default function Edit() {
     setIsDialogOpen(true);
   }
 
-  // Löscht ein Szenario anhand der ID über die API
+  // Löscht ein Szenario anhand der ID
   async function handleDeleteScenario(id: string) {
     if (!confirm("Möchtest du dieses Szenario wirklich löschen?")) return;
 

@@ -112,7 +112,7 @@ export default function Play() {
         userId: user?.id ?? null,
       });
 
-      // Prüfen, ob noch Szenarien übrig sind
+      // Prüfen, ob Szenarien übrig sind
       if (currentStep < gameScenarioIds.length - 1) {
         // Altes Szenario kurz ausblenden (verhindert Textflackern)
         setActiveScenario(null);
@@ -133,7 +133,7 @@ export default function Play() {
   async function finishGame() {
     // gleich zur Startseite navigieren (Aufflackern des Dialogs vermeiden)
     navigate("/");
-    // State erst danach ufräumen.
+    // State erst danach aufräumen.
     setCurrentStep(0);
     setScore(0);
     setIsCurrentCorrect(null);
