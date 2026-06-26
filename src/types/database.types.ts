@@ -1,46 +1,228 @@
-DESCRIPTION
-  Generate types from Postgres schema.
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
-USAGE
-  supabase gen types [flags]
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
+  public: {
+    Tables: {
+      scenarios: {
+        Row: {
+          answers: string[]
+          correctAnswer: string
+          endpointX: number
+          endpointY: number
+          id: string
+          imageUrl: string
+          question: string
+          startpointX: number
+          startpointY: number
+          title: string
+        }
+        Insert: {
+          answers: string[]
+          correctAnswer: string
+          endpointX: number
+          endpointY: number
+          id?: string
+          imageUrl: string
+          question: string
+          startpointX: number
+          startpointY: number
+          title: string
+        }
+        Update: {
+          answers?: string[]
+          correctAnswer?: string
+          endpointX?: number
+          endpointY?: number
+          id?: string
+          imageUrl?: string
+          question?: string
+          startpointX?: number
+          startpointY?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      scores: {
+        Row: {
+          created_at: string
+          gameId: string
+          id: number
+          scenarioId: string | null
+          score: number | null
+          userId: string
+        }
+        Insert: {
+          created_at?: string
+          gameId: string
+          id?: number
+          scenarioId?: string | null
+          score?: number | null
+          userId?: string
+        }
+        Update: {
+          created_at?: string
+          gameId?: string
+          id?: number
+          scenarioId?: string | null
+          score?: number | null
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scores_scenarioId_fkey"
+            columns: ["scenarioId"]
+            isOneToOne: false
+            referencedRelation: "scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
 
-FLAGS
-  --local                          Generate types from the local dev database.
-  --linked                         Generate types from the linked project.
-  --db-url string                  Generate types from a database url.
-  --project-id string              Generate types from a project ID.
-  --lang choice                    Output language of the generated types. (default typescript) (choices: typescript, go, swift, python)
-  --schema, -s string              Comma separated list of schema to include.
-  --swift-access-control choice    Access control for Swift generated types. (default internal) (choices: internal, public)
-  --postgrest-v9-compat            Generate types compatible with PostgREST v9 and below.
-  --query-timeout string           Maximum timeout allowed for the database query. (default 15s)
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-GLOBAL FLAGS
-  --help, -h                                                          Show help information
-  --version, -v                                                       Show version information
-  --completions <bash|zsh|fish|sh>                                    Print shell completion script (choices: bash, zsh, fish, sh)
-  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)
-  --output-format choice                                              Output format: text (default), json, or stream-json (NDJSON) (choices: text, json, stream-json)
-  --output, -o choice                                                 Output format of status variables. (choices: env, pretty, json, toml, yaml, table, csv)
-  --profile string                                                    Use a specific profile for connecting to Supabase API.
-  --debug                                                             Output debug logs to stderr.
-  --workdir string                                                    Path to a Supabase project directory.
-  --experimental                                                      Enable experimental features.
-  --network-id string                                                 Use the specified Docker network instead of a generated one.
-  --yes                                                               Answer yes to all prompts.
-  --dns-resolver choice                                               Look up domain names using the specified resolver. (choices: native, https)
-  --create-ticket                                                     Create a support ticket for any CLI error.
-  --agent choice                                                      Override agent detection: yes, no, or auto (default auto). (choices: auto, yes, no)
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
-EXAMPLES
-  # Generate types from the local dev database
-  supabase gen types --local
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
-  # Generate Go types from the linked project
-  supabase gen types --linked --lang=go
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
-  # Generate types from a project ID with specific schemas
-  supabase gen types --project-id abc-def-123 --schema public --schema private
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
-  # Generate types from a database URL
-  supabase gen types --db-url 'postgresql://...' --schema public --schema auth
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
