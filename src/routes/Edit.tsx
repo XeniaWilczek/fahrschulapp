@@ -13,7 +13,11 @@ import {
 import { useState, useEffect } from "react";
 import type { Scenario } from "../types/ScenarioTypes";
 import ScenarioDialog from "@/components/ScenarioDialog";
-import { fetchAllScenarios, saveScenario, deleteScenario } from "@/api";
+import {
+  fetchAllScenarios,
+  saveScenario,
+  deleteScenario as apiDeleteScenario,
+} from "@/api";
 import PreviewDialog from "@/components/PreviewDialog";
 
 export default function Edit() {
@@ -67,8 +71,8 @@ export default function Edit() {
     if (!confirm("Möchtest du dieses Szenario wirklich löschen?")) return;
 
     try {
-      // Nutzt die neue ausgelagerte API-Funktion
-      await deleteScenario(id);
+      // KORREKTUR: Nutzt jetzt den umbenannten API-Import
+      await apiDeleteScenario(id);
       loadScenarios();
     } catch (error) {
       console.error("Fehler beim Löschen des Szenarios:", error);

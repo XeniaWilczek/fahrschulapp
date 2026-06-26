@@ -119,7 +119,8 @@ export default function ScenarioDialog({
     let imagePath = formData.imageUrl;
 
     if (file) {
-      const imageResult = await uploadFile(file);
+      console.log(initialData);
+      const imageResult = await uploadFile(file, initialData?.imageUrl);
       if (imageResult?.path) {
         imagePath = imageResult.path;
       } else {

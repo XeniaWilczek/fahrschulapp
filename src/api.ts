@@ -175,7 +175,33 @@ export async function saveScenario(data: Scenario): Promise<void> {
 
 // Szenario anhand der ID aus der Datenbank löschen
 export async function deleteScenario(id: string): Promise<void> {
-  const { error } = await supabase.from("scenarios").delete().eq("id", id);
+  // 1. Bildpfad aus der Datenbank holen
+  const { data: scenario } = await supabase
+    .from("scenarios")
+    .select("imageUrl")
+    .eq("id", id)
+    .single();
 
+  // 2. Bild aus dem "backgrounds"-Ordner löschen
+  if (scenario?.imageUrl) {
+    await deleteFile(scenario.imageUrl);
+  }
+
+  // 3. Erst danach das Szenario aus der Tabelle löschen
+  const { error } = await supabase.from("scenarios").delete().eq("id", id);
   if (error) throw error;
+}
+
+export async function deleteFile(filePath: string) {
+  if (!filePath) return;
+  try {
+    // KORREKTUR: Wir löschen aus "backgrounds", weil dort die Bilder liegen
+    const { error } = await supabase.storage
+      .from("backgrounds")
+      .remove([filePath]);
+
+    if (error) console.error("Storage-Fehler beim Löschen:", error.message);
+  } catch (err) {
+    console.error("Storage-Löschfehler:", err);
+  }
 }
