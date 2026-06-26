@@ -187,7 +187,7 @@ export default function ScenarioDialog({
               htmlFor="imageUrl"
               className="text-sm font-semibold text-foreground/90"
             >
-              Hintergrundbild hochladen:
+              Hintergrundbild hochladen (ca. 2 MB, Format 9:16):
             </Label>
             <Input
               id="imageUrl"
@@ -302,7 +302,7 @@ export default function ScenarioDialog({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-sm font-semibold text-foreground/90">
-                Antwortmöglichkeiten:
+                Antwortmöglichkeiten (insgesamt 3):
               </Label>
               <Button
                 type="button"
