@@ -65,7 +65,3 @@ Die grafische Ausspielung der Verkehrssituationen erfolgt über eine performante
 Das visuelle Erscheinungsbild wird durch das modernisierte Tailwind-Framework und ein modulares Design-System bestimmt:
 OKLCH-Farbraum & Dark Mode: Die App steuert ihr visuelles Erscheinungsbild über CSS Custom Properties im wahrnehmungskonsistenten oklch()-Farbraum. Über eine @custom-variant dark und die Spiegelung sämtlicher Werte innerhalb der Klasse .dark besitzt das Projekt ein tief integriertes Dark-Mode-System. Das Layout zentriert die Anwendung auf eine feste Inhaltsbreite von 1126px mit seitlichen Begrenzungsrahmen.
 ***
-Lass mich wissen, wie wir jetzt weiter verfahren wollen, um deine erfolgreiche Weiterbildung zum krönenden Abschluss zu bringen:
-* Sollen wir deinen GitHub-Hauptaccount optimieren und eine **große, strukturierte Profil-README** anlegen, um all diese exzellenten Projekte dort prominent im Schaufenster zu pinnen?
-* Möchtest du ein **simuliertes Fachgespräch** starten, bei dem wir typische Fragen zu Supabase Auth, Row Level Security, Canvas-Vektorbewegungen oder TypeScript-Typings für deine anstehenden Vorstellungsgespräche interaktiv durchgehen?
-KI-Antworten können Fehler enthalten. Weitere Informationen
