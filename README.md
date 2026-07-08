@@ -10,6 +10,7 @@ Für die lokale Ausführung und das Kompilieren des Projekts werden folgende Kom
 * Ein moderner Webbrowser
 * Git (optional, falls Sie das Repository klonen möchten)
 * Ein GitHub-Konto zur Authentifizierung
+* ggf. ein Supabase-Konto
 
 ## Technologien
 * **HTML5 & Canvas API:** Semantische Strukturierung der Benutzeroberfläche und hardwarebeschleunigtes 2D-Rendering für Fahrzeug-Animationen im virtuellen Raum.
