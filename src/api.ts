@@ -16,7 +16,7 @@ export async function fetchAllScenarios(): Promise<Scenario[]> {
     return [];
   }
 
-  return data;
+  return data || [];
 }
 
 //Laden aller SzenarioIds für das Spiel
@@ -43,7 +43,7 @@ export function pickFiveRandomIds(allIds: string[]): string[] {
 
   for (let i = 0; i < totalRounds; i++) {
     const randomIndex = Math.floor(Math.random() * pool.length);
-    // Entfernt das Element aus dem Pool, damit es nicht doppelt gezogen werden kann -->gilt nur für eine Spielrunde: Problem?
+    // Entfernt das Element aus dem Pool, damit es nicht doppelt gezogen werden kann -->gilt nur für eine Spielrunde
     const [pickedId] = pool.splice(randomIndex, 1);
     selectedIds.push(pickedId);
   }
@@ -51,7 +51,7 @@ export function pickFiveRandomIds(allIds: string[]): string[] {
   return selectedIds;
 }
 
-//Laden eines einzelnen, kompletten Szenarios
+//Laden eines einzelnen Szenario-Objekts
 export async function fetchScenarioById(id: string): Promise<Scenario | null> {
   const { data, error } = await supabase
     .from("scenarios")
@@ -60,7 +60,7 @@ export async function fetchScenarioById(id: string): Promise<Scenario | null> {
     .single();
 
   if (error) {
-    console.error("Fehler beim Nachladen des Szenarios:", error);
+    console.error("Fehler beim Laden des Szenarios:", error);
     return null;
   }
   return data;
@@ -75,24 +75,13 @@ export async function saveScenarioScore({
   gameId: string;
   scenarioId: string;
   score: number;
-  userId: string | null;
+  userId: string;
 }) {
-  const dataToInsert: {
-    gameId: string;
-    scenarioId: string;
-    score: number;
-    userId?: string;
-  } = {
-    gameId: gameId,
-    scenarioId: scenarioId,
-    score: score,
-  };
-
-  if (userId) {
-    dataToInsert.userId = userId;
-  }
-  console.log(dataToInsert);
-  const { data, error } = await supabase.from("scores").insert([dataToInsert]);
+  // .select() angehängt, damit das Objekt auch wirklich zurückgegeben wird
+  const { data, error } = await supabase
+    .from("scores")
+    .insert([{ gameId, scenarioId, score, userId }])
+    .select();
 
   if (error) {
     console.error("Fehler beim Speichern in der scores-Tabelle:", error);
@@ -105,15 +94,20 @@ export async function saveScenarioScore({
 export async function uploadFile(file: File, oldFilePath?: string | null) {
   // wenn  alter Bildpfad exisitert, diese Datei aus dem Storage löschen
   if (oldFilePath) {
-    const { error: deleteError } = await supabase.storage
-      .from("backgrounds")
-      .remove([oldFilePath]);
+    const cleanOldPath = oldFilePath.includes("/")
+      ? oldFilePath.split("/").pop()
+      : oldFilePath;
+    if (cleanOldPath) {
+      const { error: deleteError } = await supabase.storage
+        .from("backgrounds")
+        .remove([cleanOldPath]);
 
-    if (deleteError) {
-      console.error(
-        "Fehler beim Löschen des alten Bildes vor dem Upload:",
-        deleteError.message,
-      );
+      if (deleteError) {
+        console.error(
+          "Fehler beim Löschen des alten Bildes vor dem Upload:",
+          deleteError.message,
+        );
+      }
     }
   }
 
@@ -128,13 +122,18 @@ export async function uploadFile(file: File, oldFilePath?: string | null) {
   }
   return data;
 }
+
 export async function getSignedUrl(
   filePath: string,
   expiresInSeconds: number = 3600,
 ): Promise<string | null> {
+  const cleanPath = filePath.includes("/")
+    ? filePath.split("/").pop()!
+    : filePath;
+
   const { data, error } = await supabase.storage
     .from("backgrounds")
-    .createSignedUrl(filePath, expiresInSeconds);
+    .createSignedUrl(cleanPath, expiresInSeconds);
 
   if (error) {
     console.error("Fehler beim Erstellen der Signed URL:", error.message);
@@ -144,7 +143,10 @@ export async function getSignedUrl(
   // gibt fertige, temporäre URL für Canvas/Bild-Tag zurück
   return data.signedUrl;
 }
-export async function saveScenario(data: Scenario): Promise<void> {
+
+export async function saveScenario(
+  data: Omit<Scenario, "id"> & { id?: string },
+): Promise<void> {
   const payload = {
     title: data.title,
     imageUrl: data.imageUrl,
@@ -184,7 +186,10 @@ export async function deleteScenario(id: string): Promise<void> {
 
   // 2. Bild aus dem "backgrounds"-Ordner löschen
   if (scenario?.imageUrl) {
-    await deleteFile(scenario.imageUrl);
+    const fileName = scenario.imageUrl.split("/").pop();
+    if (fileName) {
+      await deleteFile(fileName);
+    }
   }
 
   // 3. Erst danach das Szenario aus der Tabelle löschen
@@ -195,10 +200,12 @@ export async function deleteScenario(id: string): Promise<void> {
 export async function deleteFile(filePath: string) {
   if (!filePath) return;
   try {
-    // KORREKTUR: Wir löschen aus "backgrounds", weil dort die Bilder liegen
+    const cleanPath = filePath.includes("/")
+      ? filePath.split("/").pop()!
+      : filePath;
     const { error } = await supabase.storage
       .from("backgrounds")
-      .remove([filePath]);
+      .remove([cleanPath]);
 
     if (error) console.error("Storage-Fehler beim Löschen:", error.message);
   } catch (err) {

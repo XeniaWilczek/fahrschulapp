@@ -50,7 +50,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   async function signInWithGitHub() {
-    // Baut die URL exakt auf die Startseite von GitHub Pages
+    // Baut die URL auf die Startseite von GitHub
     const redirectToUrl = `${window.location.origin}/fahrschulapp/`;
 
     const { error } = await supabase.auth.signInWithOAuth({

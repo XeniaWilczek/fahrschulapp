@@ -10,7 +10,7 @@ import { Button } from "./components/ui/button";
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, signInWithGitHub } = useAuthContext();
 
-  // Wenn kein User eingeloggt ist, brechen wir das normale Layout ab und zeigen den Login-Screen
+  // Wenn kein User eingeloggt ist, wird der Login-Screen angezeigt
   if (!user) {
     return (
       <div className="flex flex-col h-[60vh] items-center justify-center gap-4 text-center px-4">
@@ -26,7 +26,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Wenn eingeloggt, zeige den eigentlichen Inhalt der Route
+  // Wenn ein User eingeloggt ist, wird der eigentliche Inhalt der Route angezeigt
   return children;
 }
 
