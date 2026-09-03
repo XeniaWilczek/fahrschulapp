@@ -18,6 +18,7 @@ export default function Canvas({
 
   //Verhindert erneutes Rendering des Scenarios, falls Play.tsx die Funktion neu rendert
   const onScenarioLoadedRef = useRef(onScenarioLoaded);
+
   useEffect(() => {
     onScenarioLoadedRef.current = onScenarioLoaded;
   }, [onScenarioLoaded]);
@@ -28,7 +29,6 @@ export default function Canvas({
 
     fetchScenarioById(currentScenarioId).then(async (data) => {
       if (data) {
-        console.log(data);
         setScenario(data);
         onScenarioLoaded(data);
 

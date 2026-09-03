@@ -62,7 +62,7 @@ export default function Play() {
 
   const { user } = useAuthContext();
 
-  // einmalig Szenario-ids laden, 5 davon auswählen
+  // einmalig Szenario-ids laden, dann 5 davon auswählen
   async function loadScenarioIds() {
     try {
       const allIds = await fetchAllScenarioIds();
@@ -109,7 +109,7 @@ export default function Play() {
         gameId: gameId,
         scenarioId: activeScenario.id.toString(),
         score: isCurrentCorrect ? 1 : 0,
-        userId: user?.id ?? null,
+        userId: user?.id ?? "",
       });
 
       // Prüfen, ob Szenarien übrig sind
@@ -133,7 +133,7 @@ export default function Play() {
   async function finishGame() {
     // gleich zur Startseite navigieren (Aufflackern des Dialogs vermeiden)
     navigate("/");
-    // State erst danach aufräumen.
+    // State erst danach aufräumen
     setCurrentStep(0);
     setScore(0);
     setIsCurrentCorrect(null);

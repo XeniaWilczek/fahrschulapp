@@ -71,7 +71,6 @@ export default function Edit() {
     if (!confirm("Möchtest du dieses Szenario wirklich löschen?")) return;
 
     try {
-      // KORREKTUR: Nutzt jetzt den umbenannten API-Import
       await apiDeleteScenario(id);
       loadScenarios();
     } catch (error) {

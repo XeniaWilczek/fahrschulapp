@@ -37,7 +37,7 @@ export default function Question({
     if (isResolved) return;
 
     const normalizedSelected = normalize(answer);
-
+    //bereits angeklickte Antwort soll nicht erneut gezählt werden
     if (clickedAnswers.some((ans) => normalize(ans) === normalizedSelected))
       return;
 

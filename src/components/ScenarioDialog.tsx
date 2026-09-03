@@ -133,10 +133,9 @@ export default function ScenarioDialog({
       .map((answer) => answer.trim())
       .filter((answer) => answer !== "");
 
-    // Wir erstellen ein exaktes Objekt vom Typ Tables<"scenarios">.
-    // Durch die Fallbacks weiß TypeScript, dass kein Wert mehr undefined sein kann.
+    // Objekt vom Typ Tables<"scenarios"> wird erstellt
     const finalData: Tables<"scenarios"> = {
-      id: formData.id || "", // Behält die ID beim Update oder übergibt einen leeren String (wird von Supabase beim Insert generiert)
+      id: formData.id || "", // Behält ID beim Update oder übergibt leeren String (wird von Supabase bei Insert generiert)
       title: formData.title?.trim() || "",
       question: formData.question?.trim() || "",
       correctAnswer: formData.correctAnswer?.trim() || "",
@@ -150,7 +149,7 @@ export default function ScenarioDialog({
 
     onSave(finalData);
 
-    // States nach dem Speichern sauber zurücksetzen
+    // States nach dem Speichern zurücksetzen
     setFormData(getInitialData());
   }
   return (
@@ -192,7 +191,7 @@ export default function ScenarioDialog({
             </Label>
             <Input
               id="imageUrl"
-              ref={fileInput} // Behält deine Referenz, um die Datei in handleSubmit auszulesen
+              ref={fileInput} // Behält Referenz, um die Datei in handleSubmit auszulesen
               type="file"
               accept="image/*" // Erlaubt dem Nutzer nur die Auswahl von Bildern
               className="text-base cursor-pointer"
